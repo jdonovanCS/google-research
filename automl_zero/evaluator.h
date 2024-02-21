@@ -61,6 +61,9 @@ class Evaluator {
   // Evaluates a Algorithm by executing it on the tasks. Returns the mean
   // fitness.
   double Evaluate(const Algorithm& algorithm);
+  // Evaluates a Algorithm by executing it on the tasks with a limited 
+  // number of steps. Returns the mean fitness 
+  double EarlyEvaluate(const Algorithm& algorithm);
   // Get the number of train steps this evaluator has performed.
   IntegerT GetNumTrainStepsCompleted() const;
 

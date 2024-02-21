@@ -55,13 +55,14 @@ using ::std::unique_ptr;  // NOLINT
 using ::std::vector;  // NOLINT
 
 constexpr double kLn2 = 0.69314718056;
+constexpr IntegerT kReductionFactor = 100;
 
 }  // namespace
 
 RegularizedEvolution::RegularizedEvolution(
     RandomGenerator* rand_gen, const IntegerT population_size,
     const IntegerT tournament_size, const IntegerT progress_every,
-    Generator* generator, Evaluator* evaluator, Mutator* mutator)
+    Generator* generator, Evaluator* evaluator, Mutator* mutator, DB_Connection* db)
     : evaluator_(evaluator),
       rand_gen_(rand_gen),
       start_secs_(GetCurrentTimeNanos() / kNanosPerSecond),
@@ -73,6 +74,10 @@ RegularizedEvolution::RegularizedEvolution(
       initialized_(false),
       generator_(generator),
       mutator_(mutator),
+      db_(db),
+      hurdle_(0),
+      migrate_prob_(.01),
+      evol_id_(rand() % 100000 +1),
       population_size_(population_size),
       algorithms_(population_size_, make_shared<Algorithm>()),
       fitnesses_(population_size_),
@@ -84,7 +89,8 @@ IntegerT RegularizedEvolution::Init() {
   std::vector<double>::iterator fitness_it = fitnesses_.begin();
   for (shared_ptr<const Algorithm>& algorithm : algorithms_) {
     InitAlgorithm(&algorithm);
-    *fitness_it = Execute(algorithm);
+    bool earlyEval = true;
+    *fitness_it = Execute(algorithm, earlyEval);
     ++fitness_it;
   }
   CHECK(fitness_it == fitnesses_.end());
@@ -107,9 +113,37 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
     for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
       SingleParentSelect(&next_algorithm);
       mutator_->Mutate(1, &next_algorithm);
-      *next_fitness_it = Execute(next_algorithm);
+      if (hurdle_ != 0) {
+        *next_fitness_it = Execute(next_algorithm, true);
+        if (*next_fitness_it > hurdle_) {
+          *next_fitness_it = Execute(next_algorithm, false);
+        }
+      }
+      else {
+      *next_fitness_it = Execute(next_algorithm, true);
+      }
       ++next_fitness_it;
     }
+    
+    // Sorting entire fitness vector and removing duplicate items
+    std::set<double> fitnesses_set(fitnesses_.begin(), fitnesses_.end());
+    vector<double> unique_fitnesses(fitnesses_set.begin(), fitnesses_set.end());
+    
+    hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
+
+    if (rand_gen_->UniformProbability() < migrate_prob_){
+      db_->Insert(evol_id_, algorithms_);
+      algorithms_ = db_->Migrate(evol_id_, algorithms_);
+    } 
+
+    // Sorting just the 75% percentile of items in the array, but not removing duplicate items
+    // vector<double> unique_fitnesses;
+    // for (IntegerT i=0; i < fitnesses_.size(); i++){
+    //   unique_fitnesses.push_back(fitnesses_[i]);
+    // }
+    // std::nth_element(unique_fitnesses.begin(), unique_fitnesses.begin() + int(unique_fitnesses.size()*.75), unique_fitnesses.end());
+    // hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
+    
     MaybePrintProgress();
   }
   return evaluator_->GetNumTrainStepsCompleted() - start_train_steps;
@@ -186,11 +220,18 @@ void RegularizedEvolution::InitAlgorithm(
   mutator_->Mutate(0, algorithm);
 }
 
-double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm) {
+double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
   ++num_individuals_;
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
-  const double fitness = evaluator_->Evaluate(*algorithm);
-  return fitness;
+  if (earlyEval == true && true == true) {
+    const double fitness_early = evaluator_->EarlyEvaluate(*algorithm);
+    return fitness_early;
+  }
+  else {
+    const double fitness = evaluator_->Evaluate(*algorithm);
+    return fitness;
+  }
+  // return fitness;
 }
 
 shared_ptr<const Algorithm>

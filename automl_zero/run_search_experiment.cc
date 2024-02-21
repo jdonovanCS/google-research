@@ -19,6 +19,7 @@
 #include <limits>
 #include <memory>
 #include <random>
+#include <unistd.h>
 
 
 #include "algorithm.h"
@@ -39,6 +40,8 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/time/time.h"
+
+#include "db_connection.h"
 
 typedef automl_zero::IntegerT IntegerT;
 typedef automl_zero::RandomSeedT RandomSeedT;
@@ -91,6 +94,9 @@ using ::std::numeric_limits;  // NOLINT
 using ::std::shared_ptr;  // NOLINT
 using ::std::unique_ptr;  // NOLINT
 using ::std::vector;  // NOLINT
+using ::std::to_string;
+using ::std::strcpy;
+using ::std::strcat;
 }  // namespace
 
 void run() {
@@ -139,6 +145,18 @@ void run() {
   auto select_tasks =
       ParseTextFormat<TaskCollection>(GetFlag(FLAGS_select_tasks));
 
+  // Create db if not already created
+//   unsigned char buf[6];
+//   std::memcpy(&buf[6], &random_seed, sizeof(random_seed));
+  char dbseed[10];
+  sprintf(dbseed, "%#u", random_seed);
+  char db_loc[100];
+  strcpy(db_loc, "/home/jordan/");
+  strcat(db_loc, dbseed);
+  strcat(db_loc, ".db3");
+  cout << db_loc;
+  DB_Connection db(db_loc);
+
   // Run search experiments and select best algorithm.
   IntegerT num_experiments = 0;
   double best_select_fitness = numeric_limits<double>::lowest();
@@ -160,11 +178,12 @@ void run() {
         experiment_spec.search_tasks(),
         &rand_gen, functional_cache.get(), train_budget.get(),
         experiment_spec.max_abs_error());
+
     RegularizedEvolution regularized_evolution(
         &rand_gen, experiment_spec.population_size(),
         experiment_spec.tournament_size(),
         experiment_spec.progress_every(),
-        &generator, &evaluator, &mutator);
+        &generator, &evaluator, &mutator, &db);
 
     // Run one experiment.
     cout << "Running evolution experiment (on the T_search tasks)..." << endl;

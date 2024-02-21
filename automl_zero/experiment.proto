@@ -112,6 +112,7 @@ message SearchExperimentSpec {
   // functions. These are required only if insert/remove mutations are used
   // (otherwise, the number of instructions remains at the setup_size_init,
   // predict_size_init, and learn_size_init values).
+  // TODO(jdonovan): make these expandable to bigger numbers?
   optional int32 mutate_setup_size_min = 8;
   optional int32 mutate_setup_size_max = 9;
   optional int32 mutate_predict_size_min = 10;

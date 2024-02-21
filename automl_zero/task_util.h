@@ -533,9 +533,9 @@ std::unique_ptr<Task<F>> CreateTask(const IntegerT task_index,
   CHECK_EQ(buffer.valid_labels_.size(), task_spec.num_valid_examples());
 
   CHECK(task_spec.has_eval_type());
-  return std::make_unique<Task<F>>(task_index, task_spec.eval_type(),
+  return std::unique_ptr<Task<F>>(new Task<F>(task_index, task_spec.eval_type(),
                                    task_spec.num_train_epochs(), &data_bit_gen,
-                                   &buffer);
+                                   &buffer));
 }
 
 // Randomizes all the seeds given a base seed. See "internal workflow" comment

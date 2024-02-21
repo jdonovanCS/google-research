@@ -558,6 +558,7 @@ cc_library(
         ":instruction",
         ":mutator",
         ":random_generator",
+        ":db_connection",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/memory",
@@ -606,6 +607,7 @@ cc_binary(
         ":random_generator",
         ":regularized_evolution",
         ":train_budget",
+        ":db_connection",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/time",
@@ -681,5 +683,33 @@ cc_test(
     deps = [
         ":util",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "sqlite3",
+    srcs = ["sqlite3.o"],
+    hdrs = ["sqlite3.h"],
+)
+
+cc_library(
+    name = "CppSQLite3",
+    srcs = ["CppSQLite3.cpp"],
+    hdrs = ["CppSQLite3.h"],
+    deps = [
+        ":sqlite3",
+    ],
+    copts = ["-I"]
+)
+
+
+cc_library(
+    name = "db_connection",
+    srcs = ["db_connection.cc"],
+    hdrs = ["db_connection.h"],
+    deps = [
+        ":CppSQLite3",
+        ":definitions",
+        ":algorithm",
     ],
 )

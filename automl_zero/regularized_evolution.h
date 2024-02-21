@@ -26,6 +26,7 @@
 #include "evaluator.h"
 #include "generator.h"
 #include "mutator.h"
+#include "db_connection.h"
 #include "random_generator.h"
 #include "absl/flags/flag.h"
 #include "absl/time/time.h"
@@ -46,7 +47,8 @@ class RegularizedEvolution {
       Generator* generator,
       Evaluator* evaluator,
       // The mutator to use to perform all mutations.
-      Mutator* mutator);
+      Mutator* mutator,
+      DB_Connection* db);
   RegularizedEvolution(
       const RegularizedEvolution& other) = delete;
   RegularizedEvolution& operator=(
@@ -95,7 +97,7 @@ class RegularizedEvolution {
       const RegularizedEvolution&);
 
   void InitAlgorithm(std::shared_ptr<const Algorithm>* algorithm);
-  double Execute(std::shared_ptr<const Algorithm> algorithm);
+  double Execute(std::shared_ptr<const Algorithm> algorithm, bool earlyEval);
   std::shared_ptr<const Algorithm> BestFitnessTournament();
   void SingleParentSelect(std::shared_ptr<const Algorithm>* algorithm);
   void MaybePrintProgress();
@@ -111,6 +113,11 @@ class RegularizedEvolution {
   bool initialized_;
   Generator* generator_;
   Mutator* mutator_;
+  DB_Connection* db_;
+
+  double hurdle_;
+  const double migrate_prob_;
+  int evol_id_;
 
   // Serializable components.
   const IntegerT population_size_;

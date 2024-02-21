@@ -54,6 +54,7 @@ using internal::CombineFitnesses;
 
 constexpr IntegerT kMinNumTrainExamples = 10;
 constexpr RandomSeedT kFunctionalCacheRandomSeed = 235732282;
+constexpr IntegerT kReductionFactor = 100;
 
 Evaluator::Evaluator(const FitnessCombinationMode fitness_combination_mode,
                      const TaskCollection& task_collection,
@@ -109,6 +110,38 @@ double Evaluator::Evaluate(const Algorithm& algorithm) {
   return combined_fitness;
 }
 
+// TODO: (jdonovan) write early evaluation function for hurdle
+double Evaluator::EarlyEvaluate(const Algorithm& algorithm) {
+  vector<double> task_fitnesses;
+  task_fitnesses.reserve(tasks_.size());
+  vector<double> debug_fitnesses;
+  vector<IntegerT> debug_num_train_examples;
+  vector<IntegerT> task_indexes;
+
+  for (IntegerT i=0;i<tasks_.size(); ++i){
+    task_indexes.push_back(i);
+  }
+  for (IntegerT task_index : task_indexes) {
+    const unique_ptr<TaskInterface>& task = tasks_[task_index];
+    CHECK_GE(task->MaxTrainExamples(), kMinNumTrainExamples);
+    const IntegerT num_train_examples =
+        train_budget_ == nullptr ?
+        task->MaxTrainExamples() / kReductionFactor :
+        train_budget_->TrainExamples(algorithm, task->MaxTrainExamples()/kReductionFactor);
+    double curr_fitness = -1.0;
+    curr_fitness = Execute(*task, num_train_examples, algorithm);
+    task_fitnesses.push_back(curr_fitness);
+  }
+  double combined_fitness =
+      CombineFitnesses(task_fitnesses, fitness_combination_mode_);
+
+  CHECK_GE(combined_fitness, kMinFitness);
+  CHECK_LE(combined_fitness, kMaxFitness);
+
+  return combined_fitness;
+}
+
+
 double Evaluator::Execute(const TaskInterface& task,
                           const IntegerT num_train_examples,
                           const Algorithm& algorithm) {
@@ -137,6 +170,8 @@ double Evaluator::Execute(const TaskInterface& task,
       LOG(FATAL) << "Unsupported features size." << endl;
   }
 }
+
+//TODO: (jdonovan) write early execute function for hurdle (may not need if I can tell it how many train examples to look at in execute)
 
 IntegerT Evaluator::GetNumTrainStepsCompleted() const {
   return num_train_steps_completed_;
