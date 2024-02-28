@@ -133,6 +133,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
 
     if (rand_gen_->UniformProbability() < migrate_prob_){
       cout << "inserting algs with evol id: " << evol_id_ << endl;
+      db_->Delete(evol_id_);
       db_->Insert(evol_id_, algorithms_);
       algorithms_ = db_->Migrate(evol_id_, algorithms_);
     } 

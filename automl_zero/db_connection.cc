@@ -34,12 +34,27 @@ DB_Connection::DB_Connection(const char* db_loc)
             // remove(db_loc);
             db.open(db_loc);
 
-            db.execDML("Create table algs(id integer not null, evol_id integer not null, setup varchar(2000), learn varchar(2000), predict varchar(2000), blob_alg BLOB, PRIMARY KEY (id))");
+            db.execDML("Create table algs(id integer not null, evol_id integer not null, setup varchar(2000), learn varchar(2000), predict varchar(2000), blob_alg BLOB, fitness REAL, PRIMARY KEY (id))");
         }
         catch (CppSQLite3Exception& e) {
             std::cerr << e.errorCode() << ":" << e.errorMessage() << endl;
         }
     }   
+
+void DB_Connection::Delete(int evol_id){
+    try{
+        cppSQLite3DB db;
+
+        db.open(db_loc_);
+        ostringstream stmt;
+        stmt << "delete from algs where evol_id = ";
+        stmt << evol_id;
+    }
+
+    catch (CppSQLite3Exception& e) {
+        std::cerr << e.errorCode() << ":" << e.errorMessage() << endl;
+    }
+}
 
 void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>> algs){
     
@@ -75,7 +90,9 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << learn.str();
             stmt << "\',\'"; 
             stmt << predict.str();
-            stmt << "\',\'";
+            stmt << "\',";
+            stmt << next_algorithm.fitness;
+            stmt << ",\'";
 
             // Serialize algorithm so that it can be stored
             std::string alg_str;
