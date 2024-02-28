@@ -76,8 +76,8 @@ RegularizedEvolution::RegularizedEvolution(
       mutator_(mutator),
       db_(db),
       hurdle_(0),
-      migrate_prob_(.01),
-      evol_id_(rand() % 100000 +1),
+      migrate_prob_(.001),
+      evol_id_(rand() % 100000),
       population_size_(population_size),
       algorithms_(population_size_, make_shared<Algorithm>()),
       fitnesses_(population_size_),
@@ -132,6 +132,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
     hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
 
     if (rand_gen_->UniformProbability() < migrate_prob_){
+      cout << "inserting algs with evol id: " << evol_id_ << endl;
       db_->Insert(evol_id_, algorithms_);
       algorithms_ = db_->Migrate(evol_id_, algorithms_);
     } 

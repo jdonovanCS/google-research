@@ -14,7 +14,7 @@
 
 #!/bin/bash
 
-DATA_DIR=$(pwd)/binary_cifar10_data/
+DATA_DIR=$(pwd)/binary_mnist_data/
 
 # Evaluating (only evolving the setup) a hand designed Neural Network on
 # projected binary tasks. Utility script to check whether the tasks are
@@ -23,14 +23,14 @@ bazel run -c opt \
   --copt=-DMAX_SCALAR_ADDRESSES=5 \
   --copt=-DMAX_VECTOR_ADDRESSES=9 \
   --copt=-DMAX_MATRIX_ADDRESSES=2 \
-  --script_path run_full_test.sh \
+  --script_path run_full_mnist_test.sh \
   //:run_search_experiment -- \
   --experiment_name="testing" \
   --search_experiment_spec=" \
     search_tasks { \
       tasks { \
         projected_binary_classification_task { \
-          dataset_name: 'cifar10' \
+          dataset_name: 'mnist' \
           path: '${DATA_DIR}' \
           held_out_pairs {positive_class: 0 negative_class: 5} \
           held_out_pairs {positive_class: 0 negative_class: 9} \
@@ -78,7 +78,7 @@ bazel run -c opt \
   --final_tasks="
     tasks { \
       projected_binary_classification_task { \
-        dataset_name: 'cifar10' \
+        dataset_name: 'mnist' \
         path: '${DATA_DIR}' \
         held_out_pairs {positive_class: 0 negative_class: 1} \
         held_out_pairs {positive_class: 0 negative_class: 2} \
@@ -131,7 +131,7 @@ bazel run -c opt \
   --select_tasks="
     tasks { \
       projected_binary_classification_task { \
-        dataset_name: 'cifar10' \
+        dataset_name: 'mnist' \
         path: '${DATA_DIR}' \
         held_out_pairs {positive_class: 0 negative_class: 5} \
         held_out_pairs {positive_class: 0 negative_class: 9} \
@@ -151,4 +151,4 @@ bazel run -c opt \
       num_tasks: 10 \
       eval_type: ACCURACY \
     } \
-    " && ./run_full_test.sh
+    " && ./run_full_mnist_test.sh

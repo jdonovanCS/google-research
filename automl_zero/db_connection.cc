@@ -1,19 +1,11 @@
 #include "db_connection.h"
-// #include "CppSQLite.h"
 #include "algorithm.h"
 #include "instruction.h"
 #include "definitions.h"
 
-
 #include <stdlib.h>
 #include <ctime>
 #include <iostream>
-// #include "stdafx.h"
-
-// #include "mysql_connection.h"
-// #include <cppconn/driver.h>
-// #include <cppconn/exception.h>
-// #include <cppconn/prepared_statement.h>
 
 namespace automl_zero {
 
@@ -29,6 +21,7 @@ using ::std::string;
 using ::std::shared_ptr;
 using ::std::ostringstream;
 using ::std::ostream;
+using ::std::make_shared;
 
 } //namespace
 
@@ -38,13 +31,10 @@ DB_Connection::DB_Connection(const char* db_loc)
             CppSQLite3DB db;
             cout << "SQLite Version: " << db.SQLiteVersion() << endl;
             cout << endl << "Creating database for run." << endl;
-            remove(db_loc);
+            // remove(db_loc);
             db.open(db_loc);
 
-            db.execDML("Create table algs(id integer not null, evol_id integer not null, setup varchar(2000), learn varchar(2000), predict varchar(2000), PRIMARY KEY (id))");
-            // cout << endl << "DML tests" << endl;
-            // int nRows = db.execDML("insert into algs (evol_id, setup, learn, predict) values (0, null, null, null)");
-            // cout << nRows << " rows inserted" << endl;
+            db.execDML("Create table algs(id integer not null, evol_id integer not null, setup varchar(2000), learn varchar(2000), predict varchar(2000), blob_alg BLOB, PRIMARY KEY (id))");
         }
         catch (CppSQLite3Exception& e) {
             std::cerr << e.errorCode() << ":" << e.errorMessage() << endl;
@@ -56,16 +46,15 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
     try{
         CppSQLite3DB db;
 
-        cout << "SQLite Version: " << db.SQLiteVersion() << endl;
-
         db.open(db_loc_);
         ostringstream stmt;
-        stmt << "insert into algs (evol_id, setup, predict, learn) values ";
+        stmt << "insert into algs (evol_id, setup, predict, learn, blob_alg) values ";
         bool first = true;
         for (shared_ptr<const Algorithm>& next_algorithm : algs){
             ostringstream setup;
             ostringstream learn;
             ostringstream predict;
+            
             for (const shared_ptr<const Instruction>& instruction : next_algorithm->setup_) {
                 setup << instruction->ToString();
             }
@@ -85,8 +74,15 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << "\',\'"; 
             stmt << learn.str();
             stmt << "\',\'"; 
-            stmt << predict.str(); 
+            stmt << predict.str();
+            stmt << "\',\'";
+
+            // Serialize algorithm so that it can be stored
+            std::string alg_str;
+            google::protobuf::TextFormat::PrintToString(next_algorithm->ToProto(), &alg_str);
+            stmt << alg_str;
             stmt << "\')";
+            
             first = false;
         }
         // cout << "query: " << stmt.str() << endl;
@@ -101,9 +97,39 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
 
 std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std::vector<shared_ptr<const Algorithm>> algs) {
     // this function should look at the evol_id and query the database for the entries that are not associated with it.
-    // TODO (Jdonovan): figure out how to store the algorithms so that they can easily be translated to and from C++. Until
-    // this is done, replacing them will not work correctly.
-    // It should then return a random selection from those algorithms
+    try{
+        CppSQLite3DB db;
+
+        db.open(db_loc_);
+        ostringstream stmt;
+        stmt << "select * from algs where evol_id not in (" << evol_id << ") order by random() limit " << int(algs.size() / 2) << ";";
+                
+        CppSQLite3Query q = db.execQuery(stmt.str().c_str());
+        
+        int i = int(algs.size()/2);
+        while (!q.eof())
+        {
+            // cout << q.fieldValue(0) << "|";
+            // cout << q.fieldValue(1) << "|";
+            // cout << q.fieldValue(2) << "|";
+            // cout << q.fieldValue(3) << "|";
+            // cout << q.fieldValue(4) << "|";
+            // cout << q.fieldValue(5) << "|" << endl;
+            auto alg = ParseTextFormat<SerializedAlgorithm>(q.fieldValue(5));
+            shared_ptr<const Algorithm> sh_alg = make_shared<const Algorithm>(alg);
+            algs[i] = sh_alg;
+            q.nextRow();
+            i++;
+        }
+
+        cout << i-int(algs.size()/2) << " algorithms migrated" << endl;
+        db.close();
+    }
+    catch (CppSQLite3Exception& e) {
+        std::cerr << e.errorCode() << ":" << e.errorMessage() << endl;
+    }
+
+
     return algs;
 }
 

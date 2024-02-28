@@ -19,6 +19,7 @@
 #include <limits>
 #include <sstream>
 #include <type_traits>
+#include <regex>
 
 #include "definitions.h"
 #include "instruction.pb.h"
@@ -1088,6 +1089,9 @@ std::string Instruction::ToString() const {
   std::string instr_str = stream.str();
   return instr_str;
 }
+
+// Maybe serialize to xml object or string and then have a 
+// deserialize for that as well.
 
 SerializedInstruction Instruction::Serialize() const {
   SerializedInstruction checkpoint_instruction;

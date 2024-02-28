@@ -79,6 +79,9 @@ ABSL_FLAG(
     double, sufficient_fitness, std::numeric_limits<double>::max(),
     "Experimentation stops when any experiment reaches this select fitness. "
     "If not specified, keeps experimenting until max_experiments is reached.");
+ABSL_FLAG(
+    std::string, experiment_name, "",
+    "The name of the experiment and database for this run. Required.");
 
 namespace automl_zero {
 
@@ -107,6 +110,7 @@ void run() {
   }
   mt19937 bit_gen(random_seed);
   RandomGenerator rand_gen(&bit_gen);
+  srand(random_seed);
   cout << "Random seed = " << random_seed << endl;
 
   // Build reusable search and select structures.
@@ -148,11 +152,11 @@ void run() {
   // Create db if not already created
 //   unsigned char buf[6];
 //   std::memcpy(&buf[6], &random_seed, sizeof(random_seed));
-  char dbseed[10];
-  sprintf(dbseed, "%#u", random_seed);
+//   char dbseed[10];
+//   sprintf(dbseed, "%#u", random_seed);
   char db_loc[100];
   strcpy(db_loc, "/home/jordan/");
-  strcat(db_loc, dbseed);
+  strcat(db_loc, GetFlag(FLAGS_experiment_name).c_str());
   strcat(db_loc, ".db3");
   cout << db_loc;
   DB_Connection db(db_loc);
