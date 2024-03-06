@@ -19,11 +19,12 @@ DATA_DIR=$(pwd)/binary_mnist_data/
 # Evaluating (only evolving the setup) a hand designed Neural Network on
 # projected binary tasks. Utility script to check whether the tasks are
 # ready.
-bazel run -c opt \
+~/.npm-packages/bin/bazel run -c opt \
   --copt=-DMAX_SCALAR_ADDRESSES=5 \
   --copt=-DMAX_VECTOR_ADDRESSES=9 \
   --copt=-DMAX_MATRIX_ADDRESSES=2 \
   --script_path run_full_mnist_test.sh \
+  --action_env=CC=/usr/bin/gcc \
   //:run_search_experiment -- \
   --experiment_name="testing" \
   --search_experiment_spec=" \

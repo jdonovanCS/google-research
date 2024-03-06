@@ -32,7 +32,8 @@ DB_Connection::DB_Connection(const char* db_loc)
             cout << "SQLite Version: " << db.SQLiteVersion() << endl;
             cout << endl << "Creating database for run." << endl;
             // remove(db_loc);
-            db.open(db_loc);
+            cout << db_loc << endl;
+	    db.open(db_loc);
 
             db.execDML("Create table algs(id integer not null, evol_id integer not null, setup varchar(2000), learn varchar(2000), predict varchar(2000), blob_alg BLOB, fitness REAL, PRIMARY KEY (id))");
         }
@@ -49,7 +50,7 @@ void DB_Connection::Delete(int evol_id){
         ostringstream stmt;
         stmt << "delete from algs where evol_id = ";
         stmt << evol_id;
-        db.execDML(stmt.str().c_str());
+	db.execDML(stmt.str().c_str());
     }
 
     catch (CppSQLite3Exception& e) {

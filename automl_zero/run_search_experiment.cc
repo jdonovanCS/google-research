@@ -155,7 +155,7 @@ void run() {
 //   char dbseed[10];
 //   sprintf(dbseed, "%#u", random_seed);
   char db_loc[100];
-  strcpy(db_loc, "/home/jordan/");
+  strcpy(db_loc, "/p/work/rditljtd/");
   strcat(db_loc, GetFlag(FLAGS_experiment_name).c_str());
   strcat(db_loc, ".db3");
   cout << db_loc;
