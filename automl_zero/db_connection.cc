@@ -43,12 +43,13 @@ DB_Connection::DB_Connection(const char* db_loc)
 
 void DB_Connection::Delete(int evol_id){
     try{
-        cppSQLite3DB db;
+        CppSQLite3DB db;
 
         db.open(db_loc_);
         ostringstream stmt;
         stmt << "delete from algs where evol_id = ";
         stmt << evol_id;
+        db.execDML(stmt.str().c_str());
     }
 
     catch (CppSQLite3Exception& e) {
@@ -90,9 +91,9 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << learn.str();
             stmt << "\',\'"; 
             stmt << predict.str();
-            stmt << "\',";
-            stmt << next_algorithm.fitness;
-            stmt << ",\'";
+            // stmt << "\',";
+            // stmt << next_algorithm.fitness;
+            stmt << "\',\'";
 
             // Serialize algorithm so that it can be stored
             std::string alg_str;

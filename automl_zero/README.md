@@ -61,6 +61,14 @@ In this human designed program, the ```Setup``` function establishes a learning 
 First install `bazel`, following the instructions [here](https://docs.bazel.build/versions/master/install.html) (bazel>=2.2.0 and g++>=9 are required), then follow the instructions below to reproduce the results in Supplementary
 Section 9 ("Baselines") with the "Basic" method on 1 process (1 CPU).
 
+Also, to run parallelized version you will want to install sqlite3 either locally or globally. You may want to download the amalgamation for it from: https://www.sqlite.org/download.html. Then you can run the compilation which is also described at the above link.
+
+Additionally, to run on a cray hpc, I had to make a few changes. One was to set the action env flag cc to use gcc, and the other was to the .bzl file at bazel-automl_zero/external/com_github_gflags_gflags/bazel/gflags.bzl line 90 to be:
+
+```
+"//conditions:default": ["-lpthread -ldl"],
+```
+
 First, generate the projected binary CIFAR10 datasets by running
 
 ```
