@@ -23,7 +23,10 @@ bazel run -c opt \
   --copt=-DMAX_SCALAR_ADDRESSES=5 \
   --copt=-DMAX_VECTOR_ADDRESSES=9 \
   --copt=-DMAX_MATRIX_ADDRESSES=2 \
-  :run_search_experiment -- \
+  --script_path run_baseline_nobuild.sh \
+  --action_env=CC=/usr/bin/gcc \
+  //:run_search_experiment -- \
+  --experiment_name="baseline_100" \
   --search_experiment_spec=" \
     search_tasks { \
       tasks { \
@@ -72,6 +75,7 @@ bazel run -c opt \
     } \
     mutate_prob: 0.9 \
     progress_every: 10000 \
+    fec {num_train_examples: 10 num_valid_examples: 10} \
     " \
   --final_tasks="
     tasks { \
@@ -124,7 +128,7 @@ bazel run -c opt \
       eval_type: ACCURACY \
     } \
     " \
-  --random_seed=1000060 \
+  --random_seed=0 \
   --select_tasks="
     tasks { \
       projected_binary_classification_task { \

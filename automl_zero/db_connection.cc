@@ -58,15 +58,15 @@ void DB_Connection::Delete(int evol_id){
     }
 }
 
-void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>> algs){
+void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>> algs, std::vector<double> fitnesses){
     
     try{
         CppSQLite3DB db;
 
         db.open(db_loc_);
         ostringstream stmt;
-        stmt << "insert into algs (evol_id, setup, predict, learn, blob_alg) values ";
-        bool first = true;
+        stmt << "insert into algs (evol_id, setup, predict, learn, fitness, blob_alg) values ";
+        index = 0
         for (shared_ptr<const Algorithm>& next_algorithm : algs){
             ostringstream setup;
             ostringstream learn;
@@ -81,7 +81,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             for (const shared_ptr<const Instruction>& instruction : next_algorithm->predict_) {
                 predict << instruction->ToString();
             }
-            if (first == true){
+            if (index == 0){
                 stmt << "(" << evol_id << ",\'"; 
             }
             else {
@@ -92,9 +92,9 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << learn.str();
             stmt << "\',\'"; 
             stmt << predict.str();
-            // stmt << "\',";
-            // stmt << next_algorithm.fitness;
-            stmt << "\',\'";
+            stmt << "\',";
+            stmt << fitnesses[index];
+            stmt << ",\'";
 
             // Serialize algorithm so that it can be stored
             std::string alg_str;
@@ -102,7 +102,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << alg_str;
             stmt << "\')";
             
-            first = false;
+            index++;
         }
         // cout << "query: " << stmt.str() << endl;
         int nRows = db.execScalar(stmt.str().c_str());
@@ -114,7 +114,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
     }
 }
 
-std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std::vector<shared_ptr<const Algorithm>> algs) {
+std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std::vector<shared_ptr<const Algorithm>> algs, std::vector<double> fitnesses) {
     // this function should look at the evol_id and query the database for the entries that are not associated with it.
     try{
         CppSQLite3DB db;
@@ -125,23 +125,37 @@ std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std
                 
         CppSQLite3Query q = db.execQuery(stmt.str().c_str());
         
-        int i = int(algs.size()/2);
+        int i = 0;
+
+        //replace worst performers
+        bool replace_worst = True;
+        std::vector<size_t> idx(fitnesses.size());
+        iota(idx.begin(), idx.end(), 0)
+        stable_sort(idx.begin(), idx.end(), [&fitnesses](size_t i1, size_t i2) {return fitnesses[i1] < fitnesses[i2];});
+        
         while (!q.eof())
         {
-            // cout << q.fieldValue(0) << "|";
-            // cout << q.fieldValue(1) << "|";
-            // cout << q.fieldValue(2) << "|";
-            // cout << q.fieldValue(3) << "|";
-            // cout << q.fieldValue(4) << "|";
-            // cout << q.fieldValue(5) << "|" << endl;
             auto alg = ParseTextFormat<SerializedAlgorithm>(q.fieldValue(5));
             shared_ptr<const Algorithm> sh_alg = make_shared<const Algorithm>(alg);
-            algs[i] = sh_alg;
+            if (replace_worst == True){
+                // replace worst performers
+                algs[idx[i]] = sh_alg
+            }
+            else if (replace_bottom == True){
+                // replace bottom half
+                int half = int(algs.size()/2)
+                algs[i+half] = sh_alg
+            }
+            else {
+                // replace top half
+                algs[i] = sh_alg;
+            }
             q.nextRow();
             i++;
         }
-
-        cout << i-int(algs.size()/2) << " algorithms migrated" << endl;
+        
+        cout << j << " algorithms migrated" << endl;
+        
         db.close();
     }
     catch (CppSQLite3Exception& e) {

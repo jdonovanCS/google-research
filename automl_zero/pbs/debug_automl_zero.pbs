@@ -7,6 +7,8 @@
 #PBS -l application=automl_zero
 #PBS -j oe
 
-cd $WORK/rditljtd/automl_zero
-source $HOME/.bashrc
-for ((i=0; i<500; i++)); do nohup bash run_full_test.sh &> testing.out & nohup bash run_full_mnist_test.sh &> testing.out done;
+# qsub -A ERDCV0089CDAG -q debug -l select=1:ncpus=192:mpiprocs=2 -l walltime=1:00:00 -l application=automl_zero -j oe -I
+
+cd $WORK/rditljtd/automl_zero && \
+source $HOME/.bashrc && \
+for ((i=0; i<50; i++)); do nohup bash run_full_test.sh >> testing.out & nohup bash run_full_mnist_test.sh >> testing.out & done;

@@ -26,8 +26,8 @@ class DB_Connection{
     DB_Connection(const char* db_loc);
 
   void Delete(int evol_id);  
-  void Insert(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs);
-  std::vector<std::shared_ptr<const Algorithm>> Migrate(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs);
+  void Insert(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, std::vector<double> fitnesses);
+  std::vector<std::shared_ptr<const Algorithm>> Migrate(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, std::vector<double> fitnesses);
 //   vector<Algorithm> migrate(vector<Algorithm> algs);
 
   const char* db_loc_;
