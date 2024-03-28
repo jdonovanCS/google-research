@@ -44,6 +44,8 @@ class RegularizedEvolution {
       IntegerT tournament_size,
       // How frequently to print progress reports.
       IntegerT progress_every,
+      bool hurdles,
+      bool parallel,
       Generator* generator,
       Evaluator* evaluator,
       // The mutator to use to perform all mutations.
@@ -110,6 +112,8 @@ class RegularizedEvolution {
   IntegerT num_individuals_last_progress_;
   const IntegerT tournament_size_;
   const IntegerT progress_every_;
+  const bool use_hurdles_;
+  const bool parallel_;
   bool initialized_;
   Generator* generator_;
   Mutator* mutator_;

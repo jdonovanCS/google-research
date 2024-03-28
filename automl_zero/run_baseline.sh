@@ -59,6 +59,8 @@ bazel run -c opt \
     mutate_setup_size_min: 1 \
     mutate_setup_size_max: 7 \
     predict_size_init: 1 \
+    hurdles: 0 \
+    parallel: 0 \
     mutate_predict_size_min: 1 \
     mutate_predict_size_max: 11 \
     learn_size_init: 1 \
@@ -75,7 +77,7 @@ bazel run -c opt \
     } \
     mutate_prob: 0.9 \
     progress_every: 10000 \
-    fec {num_train_examples: 10 num_valid_examples: 10} \
+    
     " \
   --final_tasks="
     tasks { \
@@ -153,3 +155,5 @@ bazel run -c opt \
       eval_type: ACCURACY \
     } \
     "
+
+    #fec {num_train_examples: 10 num_valid_examples: 10} \

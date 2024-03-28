@@ -66,7 +66,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
         db.open(db_loc_);
         ostringstream stmt;
         stmt << "insert into algs (evol_id, setup, predict, learn, fitness, blob_alg) values ";
-        index = 0
+        int idx = 0;
         for (shared_ptr<const Algorithm>& next_algorithm : algs){
             ostringstream setup;
             ostringstream learn;
@@ -81,7 +81,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             for (const shared_ptr<const Instruction>& instruction : next_algorithm->predict_) {
                 predict << instruction->ToString();
             }
-            if (index == 0){
+            if (idx == 0){
                 stmt << "(" << evol_id << ",\'"; 
             }
             else {
@@ -93,7 +93,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << "\',\'"; 
             stmt << predict.str();
             stmt << "\',";
-            stmt << fitnesses[index];
+            stmt << fitnesses[idx];
             stmt << ",\'";
 
             // Serialize algorithm so that it can be stored
@@ -102,7 +102,7 @@ void DB_Connection::Insert(int evol_id, std::vector<shared_ptr<const Algorithm>>
             stmt << alg_str;
             stmt << "\')";
             
-            index++;
+            idx++;
         }
         // cout << "query: " << stmt.str() << endl;
         int nRows = db.execScalar(stmt.str().c_str());
@@ -127,24 +127,29 @@ std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std
         
         int i = 0;
 
-        //replace worst performers
-        bool replace_worst = True;
+        // replace bottom half
+        bool replace_bottom = false;
+
+        // replace worst performers
+        bool replace_worst = false;
         std::vector<size_t> idx(fitnesses.size());
-        iota(idx.begin(), idx.end(), 0)
-        stable_sort(idx.begin(), idx.end(), [&fitnesses](size_t i1, size_t i2) {return fitnesses[i1] < fitnesses[i2];});
-        
+        if (replace_worst == true){
+            iota(idx.begin(), idx.end(), 0);
+            stable_sort(idx.begin(), idx.end(), [&fitnesses](size_t i1, size_t i2) {return fitnesses[i1] < fitnesses[i2];});
+        }
+
         while (!q.eof())
         {
             auto alg = ParseTextFormat<SerializedAlgorithm>(q.fieldValue(5));
             shared_ptr<const Algorithm> sh_alg = make_shared<const Algorithm>(alg);
-            if (replace_worst == True){
+            if (replace_worst == true){
                 // replace worst performers
-                algs[idx[i]] = sh_alg
+                algs[idx[i]] = sh_alg;
             }
-            else if (replace_bottom == True){
+            else if (replace_bottom == true){
                 // replace bottom half
-                int half = int(algs.size()/2)
-                algs[i+half] = sh_alg
+                int half = int(algs.size()/2);
+                algs[i+half] = sh_alg;
             }
             else {
                 // replace top half
@@ -154,7 +159,7 @@ std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std
             i++;
         }
         
-        cout << j << " algorithms migrated" << endl;
+        cout << i << " algorithms migrated" << endl;
         
         db.close();
     }

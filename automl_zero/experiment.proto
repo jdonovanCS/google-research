@@ -73,6 +73,12 @@ message SearchExperimentSpec {
   // If not present, cache is disabled.
   optional FECSpec fec = 2;
 
+  // If 0, hurdles are disabled.
+  optional int32 hurdles = 65;
+
+  // If 0, parallel is disabled.
+  optional int32 parallel = 66;
+
   optional FitnessCombinationMode fitness_combination_mode = 1
       [default = MEAN_FITNESS_COMBINATION];
 

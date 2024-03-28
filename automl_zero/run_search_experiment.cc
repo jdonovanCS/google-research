@@ -187,6 +187,7 @@ void run() {
         &rand_gen, experiment_spec.population_size(),
         experiment_spec.tournament_size(),
         experiment_spec.progress_every(),
+        experiment_spec.hurdles(), experiment_spec.parallel(),
         &generator, &evaluator, &mutator, &db);
 
     // Run one experiment.

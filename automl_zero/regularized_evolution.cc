@@ -61,7 +61,8 @@ constexpr IntegerT kReductionFactor = 100;
 
 RegularizedEvolution::RegularizedEvolution(
     RandomGenerator* rand_gen, const IntegerT population_size,
-    const IntegerT tournament_size, const IntegerT progress_every,
+    const IntegerT tournament_size, const IntegerT progress_every, 
+    const bool hurdles, const bool parallel,
     Generator* generator, Evaluator* evaluator, Mutator* mutator, DB_Connection* db)
     : evaluator_(evaluator),
       rand_gen_(rand_gen),
@@ -75,6 +76,8 @@ RegularizedEvolution::RegularizedEvolution(
       generator_(generator),
       mutator_(mutator),
       db_(db),
+      use_hurdles_(hurdles),
+      parallel_(parallel),
       hurdle_(0),
       migrate_prob_(.001),
       evol_id_(rand() % 100000),
@@ -113,7 +116,8 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
     for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
       SingleParentSelect(&next_algorithm);
       mutator_->Mutate(1, &next_algorithm);
-      if (hurdle_ != 0) {
+      
+      if (hurdle_ != 0 & use_hurdles_ == true) {
         *next_fitness_it = Execute(next_algorithm, true);
         if (*next_fitness_it > hurdle_) {
           *next_fitness_it = Execute(next_algorithm, false);
@@ -125,18 +129,22 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
       ++next_fitness_it;
     }
     
-    // Sorting entire fitness vector and removing duplicate items
-    std::set<double> fitnesses_set(fitnesses_.begin(), fitnesses_.end());
-    vector<double> unique_fitnesses(fitnesses_set.begin(), fitnesses_set.end());
-    
-    hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
+    if (use_hurdles_ == true) {
+      // Sorting entire fitness vector and removing duplicate items
+      std::set<double> fitnesses_set(fitnesses_.begin(), fitnesses_.end());
+      vector<double> unique_fitnesses(fitnesses_set.begin(), fitnesses_set.end());
+      
+      hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
+    }
 
-    if (rand_gen_->UniformProbability() < migrate_prob_){
-      cout << "inserting algs with evol id: " << evol_id_ << endl;
-      db_->Delete(evol_id_);
-      db_->Insert(evol_id_, algorithms_, fitnesses_);
-      algorithms_ = db_->Migrate(evol_id_, algorithms_, fitnesses_);
-    } 
+    if (parallel_ == true){
+      if (rand_gen_->UniformProbability() < migrate_prob_){
+        cout << "inserting algs with evol id: " << evol_id_ << endl;
+        db_->Delete(evol_id_);
+        db_->Insert(evol_id_, algorithms_, fitnesses_);
+        algorithms_ = db_->Migrate(evol_id_, algorithms_, fitnesses_);
+      } 
+    }
 
     // Sorting just the 75% percentile of items in the array, but not removing duplicate items
     // vector<double> unique_fitnesses;
