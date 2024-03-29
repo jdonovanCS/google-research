@@ -127,6 +127,7 @@ class RegularizedEvolution {
   const IntegerT population_size_;
   std::vector<std::shared_ptr<const Algorithm>> algorithms_;
   std::vector<double> fitnesses_;
+  std::vector<double> early_fitnesses_;
   IntegerT num_individuals_;
 };
 

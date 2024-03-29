@@ -84,6 +84,7 @@ RegularizedEvolution::RegularizedEvolution(
       population_size_(population_size),
       algorithms_(population_size_, make_shared<Algorithm>()),
       fitnesses_(population_size_),
+      early_fitnesses_(population_size_),
       num_individuals_(0) {}
 
 IntegerT RegularizedEvolution::Init() {
@@ -113,26 +114,27 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
              max_train_steps &&
          GetCurrentTimeNanos() - start_nanos < max_nanos) {
     vector<double>::iterator next_fitness_it = fitnesses_.begin();
+    vector<double>::iterator next_early_fitness_it = early_fitnesses_.begin();
     for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
       SingleParentSelect(&next_algorithm);
       mutator_->Mutate(1, &next_algorithm);
       
       if (hurdle_ != 0 & use_hurdles_ == true) {
-        *next_fitness_it = Execute(next_algorithm, true);
-        if (*next_fitness_it > hurdle_) {
+        *next_early_fitness_it = Execute(next_algorithm, true);
+        if (*next_early_fitness_it > hurdle_) {
           *next_fitness_it = Execute(next_algorithm, false);
         }
       }
       else {
-      *next_fitness_it = Execute(next_algorithm, true);
+      *next_fitness_it = Execute(next_algorithm, false);
       }
       ++next_fitness_it;
     }
     
     if (use_hurdles_ == true) {
       // Sorting entire fitness vector and removing duplicate items
-      std::set<double> fitnesses_set(fitnesses_.begin(), fitnesses_.end());
-      vector<double> unique_fitnesses(fitnesses_set.begin(), fitnesses_set.end());
+      std::set<double> early_fitnesses_set(early_fitnesses_.begin(), early_fitnesses_.end());
+      vector<double> unique_fitnesses(early_fitnesses_set.begin(), early_fitnesses_set.end());
       
       hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
     }
