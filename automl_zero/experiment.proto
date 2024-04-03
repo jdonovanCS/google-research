@@ -77,7 +77,7 @@ message SearchExperimentSpec {
   optional int32 hurdles = 65;
 
   // If 0, parallel is disabled.
-  optional int32 parallel = 66;
+  optional double migrate_prob = 66;
 
   optional FitnessCombinationMode fitness_combination_mode = 1
       [default = MEAN_FITNESS_COMBINATION];

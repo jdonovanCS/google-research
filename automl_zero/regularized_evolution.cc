@@ -62,7 +62,7 @@ constexpr IntegerT kReductionFactor = 100;
 RegularizedEvolution::RegularizedEvolution(
     RandomGenerator* rand_gen, const IntegerT population_size,
     const IntegerT tournament_size, const IntegerT progress_every, 
-    const bool hurdles, const bool parallel,
+    const bool hurdles, const double migrate_prob, const int evol_id,
     Generator* generator, Evaluator* evaluator, Mutator* mutator, DB_Connection* db)
     : evaluator_(evaluator),
       rand_gen_(rand_gen),
@@ -77,15 +77,16 @@ RegularizedEvolution::RegularizedEvolution(
       mutator_(mutator),
       db_(db),
       use_hurdles_(hurdles),
-      parallel_(parallel),
       hurdle_(0),
-      migrate_prob_(.001),
-      evol_id_(rand() % 100000),
+      migrate_prob_(migrate_prob),
+      evol_id_(evol_id),
       population_size_(population_size),
       algorithms_(population_size_, make_shared<Algorithm>()),
       fitnesses_(population_size_),
       early_fitnesses_(population_size_),
       num_individuals_(0) {}
+      // can probably remove parallel_ and just check if a migrate_prob is given.
+      // need to add this migrate prob or migrate_every to the proto
 
 IntegerT RegularizedEvolution::Init() {
   // Otherwise, initialize the population from scratch.
@@ -99,6 +100,7 @@ IntegerT RegularizedEvolution::Init() {
   }
   CHECK(fitness_it == fitnesses_.end());
 
+  MaybeLogDiversity();
   MaybePrintProgress();
   initialized_ = true;
   return num_individuals_ - start_individuals;
@@ -119,7 +121,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
       SingleParentSelect(&next_algorithm);
       mutator_->Mutate(1, &next_algorithm);
       
-      if (hurdle_ != 0 & use_hurdles_ == true) {
+      if (hurdle_ != 0 && use_hurdles_ == true) {
         *next_early_fitness_it = Execute(next_algorithm, true);
         if (*next_early_fitness_it > hurdle_) {
           *next_fitness_it = Execute(next_algorithm, false);
@@ -139,7 +141,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
       hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
     }
 
-    if (parallel_ == true){
+    if (migrate_prob_ > 0){
       if (rand_gen_->UniformProbability() < migrate_prob_){
         cout << "inserting algs with evol id: " << evol_id_ << endl;
         db_->Delete(evol_id_);
@@ -155,7 +157,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
     // }
     // std::nth_element(unique_fitnesses.begin(), unique_fitnesses.begin() + int(unique_fitnesses.size()*.75), unique_fitnesses.end());
     // hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
-    
+    MaybeLogDiversity();
     MaybePrintProgress();
   }
   return evaluator_->GetNumTrainStepsCompleted() - start_train_steps;
@@ -283,6 +285,14 @@ void RegularizedEvolution::MaybePrintProgress() {
             << "best fit=" << setprecision(6) << fixed << pop_best_fitness
             << "," << std::endl;
   std::cout.flush();
+  db_->LogProgress(evol_id_, num_individuals_, epoch_secs_-start_secs_, pop_mean, pop_stdev, pop_best_fitness, pop_best_algorithm);
+}
+
+void RegularizedEvolution::MaybeLogDiversity() {
+  if (num_individuals_ < num_individuals_last_progress_ + progress_every_) {
+    return;
+  }
+  db_->LogDiversity(evol_id_, algorithms_, num_individuals_);
 }
 
 }  // namespace automl_zero

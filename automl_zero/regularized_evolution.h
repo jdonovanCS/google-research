@@ -45,7 +45,8 @@ class RegularizedEvolution {
       // How frequently to print progress reports.
       IntegerT progress_every,
       bool hurdles,
-      bool parallel,
+      double migrate_prob,
+      int evol_id,
       Generator* generator,
       Evaluator* evaluator,
       // The mutator to use to perform all mutations.
@@ -103,6 +104,7 @@ class RegularizedEvolution {
   std::shared_ptr<const Algorithm> BestFitnessTournament();
   void SingleParentSelect(std::shared_ptr<const Algorithm>* algorithm);
   void MaybePrintProgress();
+  void MaybeLogDiversity();
 
   Evaluator* evaluator_;
   RandomGenerator* rand_gen_;
@@ -113,7 +115,6 @@ class RegularizedEvolution {
   const IntegerT tournament_size_;
   const IntegerT progress_every_;
   const bool use_hurdles_;
-  const bool parallel_;
   bool initialized_;
   Generator* generator_;
   Mutator* mutator_;

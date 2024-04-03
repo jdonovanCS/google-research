@@ -154,11 +154,13 @@ void run() {
 //   std::memcpy(&buf[6], &random_seed, sizeof(random_seed));
 //   char dbseed[10];
 //   sprintf(dbseed, "%#u", random_seed);
+  int evol_id = rand() % 100000;
   char db_loc[100];
-  strcpy(db_loc, "/p/work/rditljtd/");
+  strcpy(db_loc, "/home/jordan/");
   strcat(db_loc, GetFlag(FLAGS_experiment_name).c_str());
   strcat(db_loc, ".db3");
-  cout << db_loc;
+  cout << db_loc << endl;
+  cout << "evol_id:" << evol_id << endl;
   DB_Connection db(db_loc);
 
   // Run search experiments and select best algorithm.
@@ -187,7 +189,8 @@ void run() {
         &rand_gen, experiment_spec.population_size(),
         experiment_spec.tournament_size(),
         experiment_spec.progress_every(),
-        experiment_spec.hurdles(), experiment_spec.parallel(),
+        experiment_spec.hurdles(), 
+        experiment_spec.migrate_prob(), evol_id,
         &generator, &evaluator, &mutator, &db);
 
     // Run one experiment.
@@ -271,6 +274,7 @@ void run() {
        << final_fitness << endl;
   cout << "Algorithm found: " << endl
        << best_algorithm->ToReadable() << endl;
+  db.LogFinal(evol_id, best_algorithm->ToReadable(), final_fitness);
 }
 
 }  // namespace automl_zero
