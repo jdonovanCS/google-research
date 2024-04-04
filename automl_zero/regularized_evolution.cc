@@ -88,7 +88,6 @@ RegularizedEvolution::RegularizedEvolution(
       early_fitnesses_(population_size_),
       map_elites_grid_(std::accumulate(map_elites_grid_size_.begin(), map_elites_grid_size_.end(), 1.0, std::multiplies<double>()), make_shared<Algorithm>()),
       map_elites_grid_fitnesses_(map_elites_grid_.size()),
-      map_elites_grid_filled_(map_elites_grid_.size()),
       num_individuals_(0) {}
       // can probably remove parallel_ and just check if a migrate_prob is given.
       // need to add this migrate prob or migrate_every to the proto
@@ -253,6 +252,7 @@ void RegularizedEvolution::InitAlgorithm(
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
   if (earlyEval==false){
     ++num_individuals_;
+  }
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
   if (earlyEval == true && true == true) {
     const double fitness_early = evaluator_->EarlyEvaluate(*algorithm);
