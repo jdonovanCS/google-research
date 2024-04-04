@@ -47,6 +47,7 @@ class RegularizedEvolution {
       bool hurdles,
       double migrate_prob,
       int evol_id,
+      std::vector<int> map_elites_grid_size,
       Generator* generator,
       Evaluator* evaluator,
       // The mutator to use to perform all mutations.
@@ -100,6 +101,9 @@ class RegularizedEvolution {
       const RegularizedEvolution&);
 
   void InitAlgorithm(std::shared_ptr<const Algorithm>* algorithm);
+  void MapElites();
+  int GetTotalOps(std::shared_ptr<const Algorithm> alg);
+  int GetTotalVars(std::shared_ptr<const Algorithm> alg);
   double Execute(std::shared_ptr<const Algorithm> algorithm, bool earlyEval);
   std::shared_ptr<const Algorithm> BestFitnessTournament();
   void SingleParentSelect(std::shared_ptr<const Algorithm>* algorithm);
@@ -126,10 +130,13 @@ class RegularizedEvolution {
 
   // Serializable components.
   const IntegerT population_size_;
+  std::vector<int> map_elites_grid_size_;
   std::vector<std::shared_ptr<const Algorithm>> algorithms_;
   std::vector<double> fitnesses_;
   std::vector<double> early_fitnesses_;
   IntegerT num_individuals_;
+  std::vector<std::shared_ptr<const Algorithm>> map_elites_grid_;
+  std::vector<double> map_elites_grid_fitnesses_;
 };
 
 }  // namespace automl_zero

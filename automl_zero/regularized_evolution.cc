@@ -62,8 +62,9 @@ constexpr IntegerT kReductionFactor = 100;
 RegularizedEvolution::RegularizedEvolution(
     RandomGenerator* rand_gen, const IntegerT population_size,
     const IntegerT tournament_size, const IntegerT progress_every, 
-    const bool hurdles, const double migrate_prob, const int evol_id,
-    Generator* generator, Evaluator* evaluator, Mutator* mutator, DB_Connection* db)
+    const bool hurdles, const double migrate_prob, const int evol_id, 
+    vector<int> map_elites_grid_size, Generator* generator, 
+    Evaluator* evaluator, Mutator* mutator, DB_Connection* db)
     : evaluator_(evaluator),
       rand_gen_(rand_gen),
       start_secs_(GetCurrentTimeNanos() / kNanosPerSecond),
@@ -81,9 +82,13 @@ RegularizedEvolution::RegularizedEvolution(
       migrate_prob_(migrate_prob),
       evol_id_(evol_id),
       population_size_(population_size),
+      map_elites_grid_size_(map_elites_grid_size),
       algorithms_(population_size_, make_shared<Algorithm>()),
       fitnesses_(population_size_),
       early_fitnesses_(population_size_),
+      map_elites_grid_(std::accumulate(map_elites_grid_size_.begin(), map_elites_grid_size_.end(), 1.0, std::multiplies<double>()), make_shared<Algorithm>()),
+      map_elites_grid_fitnesses_(map_elites_grid_.size()),
+      map_elites_grid_filled_(map_elites_grid_.size()),
       num_individuals_(0) {}
       // can probably remove parallel_ and just check if a migrate_prob is given.
       // need to add this migrate prob or migrate_every to the proto
@@ -92,13 +97,23 @@ IntegerT RegularizedEvolution::Init() {
   // Otherwise, initialize the population from scratch.
   const IntegerT start_individuals = num_individuals_;
   std::vector<double>::iterator fitness_it = fitnesses_.begin();
+  std::vector<double>::iterator early_fitness_it = early_fitnesses_.begin();
   for (shared_ptr<const Algorithm>& algorithm : algorithms_) {
     InitAlgorithm(&algorithm);
-    bool earlyEval = true;
-    *fitness_it = Execute(algorithm, earlyEval);
+    *fitness_it = Execute(algorithm, false);
+    *early_fitness_it = Execute(algorithm, true);
     ++fitness_it;
+    ++early_fitness_it;
   }
   CHECK(fitness_it == fitnesses_.end());
+
+  std::vector<double>::iterator map_elites_fitness_it = map_elites_grid_fitnesses_.begin();
+  for (shared_ptr<const Algorithm>& algorithm : map_elites_grid_){
+    InitAlgorithm(&algorithm);
+    *map_elites_fitness_it = 0;
+    ++map_elites_fitness_it;
+  }
+  CHECK(map_elites_fitness_it == map_elites_grid_fitnesses_.end());
 
   MaybeLogDiversity();
   MaybePrintProgress();
@@ -117,6 +132,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
          GetCurrentTimeNanos() - start_nanos < max_nanos) {
     vector<double>::iterator next_fitness_it = fitnesses_.begin();
     vector<double>::iterator next_early_fitness_it = early_fitnesses_.begin();
+    MapElites();
     for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
       SingleParentSelect(&next_algorithm);
       mutator_->Mutate(1, &next_algorithm);
@@ -235,7 +251,8 @@ void RegularizedEvolution::InitAlgorithm(
 }
 
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
-  ++num_individuals_;
+  if (earlyEval==false){
+    ++num_individuals_;
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
   if (earlyEval == true && true == true) {
     const double fitness_early = evaluator_->EarlyEvaluate(*algorithm);
@@ -246,6 +263,156 @@ double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool
     return fitness;
   }
   // return fitness;
+}
+
+void RegularizedEvolution::MapElites(){
+  // Fill map elites predefined grid
+  // For each algorithm in algorithms, check to see if it has a higher fitness
+  // than the corresponding algorithm in the grid at its location, replace it if so
+  // Otherwise, flag this algorithm. It needs to be set equal to a random algorithm
+  // from the grid at the end of this function. It's fitness also needs to be set to
+  // that of the algorithm that replaces it
+
+  int row_length = map_elites_grid_size_[1];
+  vector<double>::iterator fitness_it = fitnesses_.begin();
+  for (shared_ptr<const Algorithm> next_algorithm : algorithms_){
+    int total_vars = rand() % 10; //GetTotalVars(next_algorithm);
+    int total_ops = rand() % 10; //GetTotalOps(next_algorithm);
+    int idx = (total_vars*row_length) + total_ops;
+    if (*fitness_it >= map_elites_grid_fitnesses_[idx]){
+      map_elites_grid_[idx] = next_algorithm;
+      map_elites_grid_fitnesses_[idx] = *fitness_it;
+    }
+
+    else {
+      next_algorithm = nullptr;
+      *fitness_it = 0;
+    }    
+    ++fitness_it;  
+  }  
+  fitness_it = fitnesses_.begin();  
+    
+  for (shared_ptr<const Algorithm>& next_algorithm : algorithms_){    if (next_algorithm == nullptr){
+    int rand_idx = rand() % int(map_elites_grid_fitnesses_.size());
+    while(map_elites_grid_[rand_idx] == nullptr){
+        rand_idx = rand() % int(map_elites_grid_fitnesses_.size());
+      }
+    next_algorithm = map_elites_grid_[rand_idx];
+    *fitness_it = map_elites_grid_fitnesses_[rand_idx];
+  }
+  ++fitness_it;
+  }
+}
+
+//TODO (jdonovancs): Maybe make a class to keep these variables in. Or add to algorithm at some point?
+int RegularizedEvolution::GetTotalOps(shared_ptr<const Algorithm> alg){
+      std::vector<int> arith_op_key{0,1,2,3,4,5,6};
+      std::vector<int> trig_op_key{7,8,9,10,11,12};
+      std::vector<int> precalc_op_key{13,14,15,16,17};
+      std::vector<int> linearalg_op_key{18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43};
+      std::vector<int> probstat_op_key{44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64};
+      
+      int setup_ops = 0;
+      int learn_ops = 0;
+      int predict_ops = 0;
+      int total_ops = 0;
+      
+      int arith_ops = 0;
+      int trig_ops = 0;
+      int precalc_ops = 0;
+      int linearalg_ops = 0;
+      int probstat_ops = 0;
+
+      for (const shared_ptr<const Instruction>& instruction : alg->setup_) {
+        if (std::find(arith_op_key.begin(), arith_op_key.end(), instruction->op_) != arith_op_key.end()){
+            arith_ops++;
+        }
+        else if (std::find(trig_op_key.begin(), trig_op_key.end(), instruction->op_) != trig_op_key.end()){
+            trig_ops++;
+        }
+        else if (std::find(precalc_op_key.begin(), precalc_op_key.end(), instruction->op_) != precalc_op_key.end()){
+            precalc_ops++;
+        }
+        else if (std::find(linearalg_op_key.begin(), linearalg_op_key.end(), instruction->op_) != linearalg_op_key.end()){
+            linearalg_ops++;
+        }
+        else if (std::find(probstat_op_key.begin(), probstat_op_key.end(), instruction->op_) != probstat_op_key.end()){
+            probstat_ops++;
+        }
+        setup_ops++;
+      }
+      for (const shared_ptr<const Instruction>& instruction : alg->learn_) {
+        if (std::find(arith_op_key.begin(), arith_op_key.end(), instruction->op_) != arith_op_key.end()){
+            arith_ops++;
+        }
+        else if (std::find(trig_op_key.begin(), trig_op_key.end(), instruction->op_) != trig_op_key.end()){
+            trig_ops++;
+        }
+        else if (std::find(precalc_op_key.begin(), precalc_op_key.end(), instruction->op_) != precalc_op_key.end()){
+            precalc_ops++;
+        }
+        else if (std::find(linearalg_op_key.begin(), linearalg_op_key.end(), instruction->op_) != linearalg_op_key.end()){
+            linearalg_ops++;
+        }
+        else if (std::find(probstat_op_key.begin(), probstat_op_key.end(), instruction->op_) != probstat_op_key.end()){
+            probstat_ops++;
+        }
+        
+        learn_ops++;
+      }
+      for (const shared_ptr<const Instruction>& instruction : alg->predict_) {
+        if (std::find(arith_op_key.begin(), arith_op_key.end(), instruction->op_) != arith_op_key.end()){
+            arith_ops++;
+        }
+        else if (std::find(trig_op_key.begin(), trig_op_key.end(), instruction->op_) != trig_op_key.end()){
+            trig_ops++;
+        }
+        else if (std::find(precalc_op_key.begin(), precalc_op_key.end(), instruction->op_) != precalc_op_key.end()){
+            precalc_ops++;
+        }
+        else if (std::find(linearalg_op_key.begin(), linearalg_op_key.end(), instruction->op_) != linearalg_op_key.end()){
+            linearalg_ops++;
+        }
+        else if (std::find(probstat_op_key.begin(), probstat_op_key.end(), instruction->op_) != probstat_op_key.end()){
+            probstat_ops++;
+        }
+        
+        predict_ops++;
+      }
+      total_ops = setup_ops+learn_ops+predict_ops;
+      return total_ops;
+}
+
+int RegularizedEvolution::GetTotalVars(shared_ptr<const Algorithm> alg){
+  int scalar_vars = 0;
+  int vector_vars = 0;
+  int matrix_vars = 0;
+  int total_vars = 0;
+  std::string alg_str(alg->ToReadable());
+  std::istringstream alg_stream(alg_str);
+  std::string line;
+  while (std::getline(alg_stream, line)){
+    if (line.substr(2,1) == "s" && int(line[3]) > scalar_vars){
+      scalar_vars = line[3] - '0';
+    }
+    else if (line.substr(2,1) == "s" && (scalar_vars < 10 && std::isdigit(line[4]))){
+      scalar_vars = std::stoi(line.substr(2,2));
+    }
+    else if (line.substr(2,1) == "v" && int(line[3]) > vector_vars){
+      vector_vars = line[3] - '0';
+    }
+    else if (line.substr(2,1) == "v" && (vector_vars < 10 && std::isdigit(line[4]))){
+      vector_vars = std::stoi(line.substr(2,2));
+    }
+    else if (line.substr(2,1) == "m" && int(line[3]) > matrix_vars){
+      matrix_vars = line[3] - '0';
+    }
+    else if (line.substr(2,1) == "s" && (matrix_vars < 10 && std::isdigit(line[4]))){
+      matrix_vars = std::stoi(line.substr(2,2));
+    }
+  }
+  total_vars = scalar_vars+vector_vars+matrix_vars;
+  return total_vars;
 }
 
 shared_ptr<const Algorithm>

@@ -174,6 +174,7 @@ std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std
     return algs;
 }
 
+//TODO (jdonovancs): doing this functionality in regularized evolution also. Maybe just do it once there instead of twice.
 void DB_Connection::LogDiversity(int evol_id, std::vector<shared_ptr<const Algorithm>> algs, int num_indivs){
     // for diversity logging, may want to remove later
     ostringstream stmt;

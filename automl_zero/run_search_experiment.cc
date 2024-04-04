@@ -162,6 +162,8 @@ void run() {
   cout << db_loc << endl;
   cout << "evol_id:" << evol_id << endl;
   DB_Connection db(db_loc);
+  vector<int> map_elites_grid_size{experiment_spec.mutate_setup_size_max()+experiment_spec.mutate_predict_size_max()+experiment_spec.mutate_learn_size_max(), 
+                        kMaxScalarAddresses+kMaxVectorAddresses+kMaxMatrixAddresses}; 
 
   // Run search experiments and select best algorithm.
   IntegerT num_experiments = 0;
@@ -190,8 +192,9 @@ void run() {
         experiment_spec.tournament_size(),
         experiment_spec.progress_every(),
         experiment_spec.hurdles(), 
-        experiment_spec.migrate_prob(), evol_id,
-        &generator, &evaluator, &mutator, &db);
+        experiment_spec.migrate_prob(), evol_id, 
+        map_elites_grid_size, &generator, &evaluator, 
+        &mutator, &db);
 
     // Run one experiment.
     cout << "Running evolution experiment (on the T_search tasks)..." << endl;
