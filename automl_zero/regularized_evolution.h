@@ -48,6 +48,7 @@ class RegularizedEvolution {
       double migrate_prob,
       int evol_id,
       std::vector<int> map_elites_grid_size,
+      bool qd,
       Generator* generator,
       Evaluator* evaluator,
       // The mutator to use to perform all mutations.
@@ -109,6 +110,7 @@ class RegularizedEvolution {
   void SingleParentSelect(std::shared_ptr<const Algorithm>* algorithm);
   void MaybePrintProgress();
   void MaybeLogDiversity();
+  void MaybePrintMapElites();
 
   Evaluator* evaluator_;
   RandomGenerator* rand_gen_;
@@ -119,6 +121,7 @@ class RegularizedEvolution {
   const IntegerT tournament_size_;
   const IntegerT progress_every_;
   const bool use_hurdles_;
+  const bool qd_;
   bool initialized_;
   Generator* generator_;
   Mutator* mutator_;
@@ -134,6 +137,11 @@ class RegularizedEvolution {
   std::vector<std::shared_ptr<const Algorithm>> algorithms_;
   std::vector<double> fitnesses_;
   std::vector<double> early_fitnesses_;
+  std::vector<double> diversity_scores_;
+  std::vector<double> total_ops_;
+  std::vector<double> total_vars_;
+  std::shared_ptr<const Algorithm> best_alg_;
+  double best_fitness_;
   IntegerT num_individuals_;
   std::vector<std::shared_ptr<const Algorithm>> map_elites_grid_;
   std::vector<double> map_elites_grid_fitnesses_;

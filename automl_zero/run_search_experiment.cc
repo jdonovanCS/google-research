@@ -156,7 +156,8 @@ void run() {
 //   sprintf(dbseed, "%#u", random_seed);
   int evol_id = rand() % 100000;
   char db_loc[100];
-  strcpy(db_loc, "/home/jordan/");
+//   strcpy(db_loc, "/home/jordan/");
+  strcpy(db_loc, "/p/work/rditljtd/automl_zero/");
   strcat(db_loc, GetFlag(FLAGS_experiment_name).c_str());
   strcat(db_loc, ".db3");
   cout << db_loc << endl;
@@ -193,8 +194,8 @@ void run() {
         experiment_spec.progress_every(),
         experiment_spec.hurdles(), 
         experiment_spec.migrate_prob(), evol_id, 
-        map_elites_grid_size, &generator, &evaluator, 
-        &mutator, &db);
+        map_elites_grid_size, experiment_spec.qd(),
+        &generator, &evaluator, &mutator, &db);
 
     // Run one experiment.
     cout << "Running evolution experiment (on the T_search tasks)..." << endl;

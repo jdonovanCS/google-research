@@ -129,4 +129,7 @@ message SearchExperimentSpec {
   // The period between progress reports to stdout, as the experiment
   // advances.
   optional int64 progress_every = 16 [default = 10000];
+
+  // If not specified, quality diversity will be disabled.
+  optional int32 qd = 67;
 }

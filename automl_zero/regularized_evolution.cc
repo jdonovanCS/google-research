@@ -63,7 +63,7 @@ RegularizedEvolution::RegularizedEvolution(
     RandomGenerator* rand_gen, const IntegerT population_size,
     const IntegerT tournament_size, const IntegerT progress_every, 
     const bool hurdles, const double migrate_prob, const int evol_id, 
-    vector<int> map_elites_grid_size, Generator* generator, 
+    vector<int> map_elites_grid_size, const bool qd, Generator* generator, 
     Evaluator* evaluator, Mutator* mutator, DB_Connection* db)
     : evaluator_(evaluator),
       rand_gen_(rand_gen),
@@ -86,6 +86,12 @@ RegularizedEvolution::RegularizedEvolution(
       algorithms_(population_size_, make_shared<Algorithm>()),
       fitnesses_(population_size_),
       early_fitnesses_(population_size_),
+      qd_(qd),
+      diversity_scores_(population_size_, 0),
+      total_ops_(population_size_),
+      total_vars_(population_size_),
+      best_alg_(algorithms_[0]),
+      best_fitness_(0.0),
       map_elites_grid_(std::accumulate(map_elites_grid_size_.begin(), map_elites_grid_size_.end(), 1.0, std::multiplies<double>()), make_shared<Algorithm>()),
       map_elites_grid_fitnesses_(map_elites_grid_.size()),
       num_individuals_(0) {}
@@ -131,22 +137,66 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
          GetCurrentTimeNanos() - start_nanos < max_nanos) {
     vector<double>::iterator next_fitness_it = fitnesses_.begin();
     vector<double>::iterator next_early_fitness_it = early_fitnesses_.begin();
-    MapElites();
-    for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
-      SingleParentSelect(&next_algorithm);
-      mutator_->Mutate(1, &next_algorithm);
+    if (false == true)
+    {
+      MapElites();
+    }
+    else{
+      for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
+        SingleParentSelect(&next_algorithm);
+        mutator_->Mutate(1, &next_algorithm);
       
-      if (hurdle_ != 0 && use_hurdles_ == true) {
-        *next_early_fitness_it = Execute(next_algorithm, true);
-        if (*next_early_fitness_it > hurdle_) {
-          *next_fitness_it = Execute(next_algorithm, false);
+        if (hurdle_ != 0 && use_hurdles_ == true) {
+          *next_early_fitness_it = Execute(next_algorithm, true);
+          if (*next_early_fitness_it > hurdle_) {
+            *next_fitness_it = Execute(next_algorithm, false);
+          }
+          else {
+            *next_fitness_it = *next_early_fitness_it;
+            }            
+        }
+        else {
+        *next_fitness_it = Execute(next_algorithm, false);
+        }
+        
+        ++next_fitness_it;
+      }
+      if (qd_ == true){
+        vector<double>::iterator total_ops_it = total_ops_.begin();
+        vector<double>::iterator total_vars_it = total_vars_.begin();
+        for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
+          *total_ops_it = GetTotalOps(next_algorithm);
+          *total_vars_it = GetTotalVars(next_algorithm);
+          ++total_ops_it;
+          ++total_vars_it;
+        }
+        total_ops_it = total_ops_.begin();
+        total_vars_it = total_vars_.begin();
+        double min_div = std::numeric_limits<double>::max();
+        double max_div = 0;
+        for (double diversity_score : diversity_scores_){
+          diversity_score = 0;
+          for (double total_op : total_ops_){
+            diversity_score += abs((*total_ops_it)-total_op);
+          }
+          for (double total_var : total_vars_){
+            diversity_score += abs((*total_vars_it) - total_var);
+          }
+          if (diversity_score < min_div) {
+            min_div = diversity_score;
+          }
+          if (diversity_score > max_div) {
+            max_div = diversity_score;
+          }
+          // TODO (jdonovancs): normalize to between 0 and 1 instead of guessing at values
+          diversity_score -= min_div;
+          diversity_score /= (max_div-min_div);
+          ++total_ops_it;
+          ++total_vars_it;
         }
       }
-      else {
-      *next_fitness_it = Execute(next_algorithm, false);
-      }
-      ++next_fitness_it;
     }
+
     
     if (use_hurdles_ == true) {
       // Sorting entire fitness vector and removing duplicate items
@@ -250,9 +300,7 @@ void RegularizedEvolution::InitAlgorithm(
 }
 
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
-  if (earlyEval==false){
-    ++num_individuals_;
-  }
+  ++num_individuals_;
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
   if (earlyEval == true && true == true) {
     const double fitness_early = evaluator_->EarlyEvaluate(*algorithm);
@@ -274,23 +322,23 @@ void RegularizedEvolution::MapElites(){
   // that of the algorithm that replaces it
 
   int row_length = map_elites_grid_size_[1];
-  vector<double>::iterator fitness_it = fitnesses_.begin();
+  int fit_idx = 0;
   for (shared_ptr<const Algorithm> next_algorithm : algorithms_){
-    int total_vars = rand() % 10; //GetTotalVars(next_algorithm);
-    int total_ops = rand() % 10; //GetTotalOps(next_algorithm);
+    int total_vars = GetTotalVars(next_algorithm);
+    int total_ops = GetTotalOps(next_algorithm);
     int idx = (total_vars*row_length) + total_ops;
-    if (*fitness_it >= map_elites_grid_fitnesses_[idx]){
+    if (fitnesses_[fit_idx] >= map_elites_grid_fitnesses_[idx]){
       map_elites_grid_[idx] = next_algorithm;
-      map_elites_grid_fitnesses_[idx] = *fitness_it;
+      map_elites_grid_fitnesses_[idx] = fitnesses_[fit_idx];
     }
 
     else {
       next_algorithm = nullptr;
-      *fitness_it = 0;
+      fitnesses_[fit_idx] = 0;
     }    
-    ++fitness_it;  
+    fit_idx++;  
   }  
-  fitness_it = fitnesses_.begin();  
+  vector<double>::iterator fitness_it = fitnesses_.begin(); 
     
   for (shared_ptr<const Algorithm>& next_algorithm : algorithms_){    if (next_algorithm == nullptr){
     int rand_idx = rand() % int(map_elites_grid_fitnesses_.size());
@@ -422,7 +470,7 @@ shared_ptr<const Algorithm>
   for (IntegerT tour_idx = 0; tour_idx < tournament_size_; ++tour_idx) {
     const IntegerT algorithm_index =
         rand_gen_->UniformPopulationSize(population_size_);
-    const double curr_fitness = fitnesses_[algorithm_index];
+    const double curr_fitness = fitnesses_[algorithm_index] + diversity_scores_[algorithm_index];
     if (best_index == -1 || curr_fitness > tour_best_fitness) {
       tour_best_fitness = curr_fitness;
       best_index = algorithm_index;
@@ -445,11 +493,16 @@ void RegularizedEvolution::MaybePrintProgress() {
   shared_ptr<const Algorithm> pop_best_algorithm;
   PopulationStats(
       &pop_mean, &pop_stdev, &pop_best_algorithm, &pop_best_fitness);
+  if (pop_best_fitness > best_fitness_){
+    best_fitness_ = pop_best_fitness;
+    best_alg_ = pop_best_algorithm;
+  }
   std::cout << "indivs=" << num_individuals_ << ", " << setprecision(0) << fixed
             << "elapsed_secs=" << epoch_secs_ - start_secs_ << ", "
             << "mean=" << setprecision(6) << fixed << pop_mean << ", "
             << "stdev=" << setprecision(6) << fixed << pop_stdev << ", "
-            << "best fit=" << setprecision(6) << fixed << pop_best_fitness
+            << "best fit=" << setprecision(6) << fixed << pop_best_fitness << ", "
+            << "best_overall=" << setprecision(6) << fixed << best_fitness_
             << "," << std::endl;
   std::cout.flush();
   db_->LogProgress(evol_id_, num_individuals_, epoch_secs_-start_secs_, pop_mean, pop_stdev, pop_best_fitness, pop_best_algorithm);
@@ -460,6 +513,18 @@ void RegularizedEvolution::MaybeLogDiversity() {
     return;
   }
   db_->LogDiversity(evol_id_, algorithms_, num_individuals_);
+}
+
+void RegularizedEvolution::MaybePrintMapElites() {
+  if (num_individuals_ < num_individuals_last_progress_ + progress_every_) {
+    return;
+  }
+  for (double fitness : map_elites_grid_fitnesses_){
+    cout << fitness << ", ";
+  }
+  for (shared_ptr<const Algorithm>& algorithm : map_elites_grid_){
+    cout << algorithm->ToReadable() << endl;
+  }
 }
 
 }  // namespace automl_zero
