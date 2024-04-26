@@ -36,9 +36,9 @@ DB_Connection::DB_Connection(const char* db_loc)
 	    db.open(db_loc);
 
             db.execDML("Create table algs(id integer not null, evol_id integer not null, setup varchar(2000), learn varchar(2000), predict varchar(2000), blob_alg BLOB, fitness REAL, PRIMARY KEY (id))");
-            db.execDML("Create table diversity(id integer not null, evol_id integer not null, total_vars integer, scalar_vars integer, vector_vars integer, matrix_vars integer, total_ops integer, setup_ops integer, learn_ops integer, predict_ops integer, arith_ops integer, trig_ops integer, precalc_ops integer, linearalg_ops integer, probstat_ops integer, num_indivs integer, alg_str varchar(2000), PRIMARY KEY (id))");
+            db.execDML("Create table diversity(id integer not null, evol_id integer not null, total_vars integer, scalar_vars integer, vector_vars integer, matrix_vars integer, total_ops integer, setup_ops integer, learn_ops integer, predict_ops integer, arith_ops integer, trig_ops integer, precalc_ops integer, linearalg_ops integer, probstat_ops integer, diversity_score REAL, fitness REAL, num_indivs integer, alg_str varchar(2000), PRIMARY KEY (id))");
             db.execDML("Create table final(id integer not null, evol_id integer not null, alg_str varchar(2000), fitness REAL, PRIMARY KEY (id))");
-            db.execDML("Create table progress(id integer not null, evol_id integer not null, num_indivs integer, elapsed_secs integer, mean REAL, stdev REAL, best_fit REAL, best_alg_str varchar(2000), PRIMARY KEY (id))");
+            db.execDML("Create table progress(id integer not null, evol_id integer not null, num_indivs integer, elapsed_secs integer, mean REAL, stdev REAL, best_fit REAL, bestfit_diversity REAL, best_alg_str varchar(2000), PRIMARY KEY (id))");
         }
         catch (CppSQLite3Exception& e) {
             std::cerr << e.errorCode() << ":" << e.errorMessage() << endl;
@@ -175,10 +175,10 @@ std::vector<shared_ptr<const Algorithm>> DB_Connection::Migrate(int evol_id, std
 }
 
 //TODO (jdonovancs): doing this functionality in regularized evolution also. Maybe just do it once there instead of twice.
-void DB_Connection::LogDiversity(int evol_id, std::vector<shared_ptr<const Algorithm>> algs, int num_indivs){
+void DB_Connection::LogDiversity(int evol_id, std::vector<shared_ptr<const Algorithm>> algs, int num_indivs, std::vector<double> diversity_scores, std::vector<double> fitnesses){
     // for diversity logging, may want to remove later
     ostringstream stmt;
-    stmt << "insert into diversity (evol_id, total_ops, setup_ops, predict_ops, learn_ops, total_vars, scalar_vars, vector_vars, matrix_vars, arith_ops, trig_ops, precalc_ops, linearalg_ops, probstat_ops, num_indivs, alg_str) values ";
+    stmt << "insert into diversity (evol_id, total_ops, setup_ops, predict_ops, learn_ops, total_vars, scalar_vars, vector_vars, matrix_vars, arith_ops, trig_ops, precalc_ops, linearalg_ops, probstat_ops, diversity_score, fitness, num_indivs, alg_str) values ";
     int idx = 0;
     std::vector<int> arith_op_key{0,1,2,3,4,5,6};
     std::vector<int> trig_op_key{7,8,9,10,11,12};
@@ -320,10 +320,10 @@ void DB_Connection::LogDiversity(int evol_id, std::vector<shared_ptr<const Algor
       total_ops = setup_ops+learn_ops+predict_ops;
       total_vars = scalar_vars+vector_vars+matrix_vars;
       if (idx == 0){
-        stmt << "(" << evol_id << "," << total_ops << "," << setup_ops << "," << learn_ops << "," << predict_ops << "," << total_vars << "," << scalar_vars << "," << vector_vars << "," << matrix_vars << "," << arith_ops << "," << trig_ops << "," << precalc_ops << "," << linearalg_ops << "," << probstat_ops << "," << num_indivs << ",'" << alg_str << "')";
+        stmt << "(" << evol_id << "," << total_ops << "," << setup_ops << "," << learn_ops << "," << predict_ops << "," << total_vars << "," << scalar_vars << "," << vector_vars << "," << matrix_vars << "," << arith_ops << "," << trig_ops << "," << precalc_ops << "," << linearalg_ops << "," << probstat_ops << "," << diversity_scores[idx] << "," << fitnesses[idx] << "," << num_indivs << ",'" << alg_str << "')";
       }
       else {
-        stmt << ",(" << evol_id << "," << total_ops << "," << setup_ops << "," << learn_ops << "," << predict_ops << "," << total_vars << "," << scalar_vars << "," << vector_vars << "," << matrix_vars << "," << arith_ops << "," << trig_ops << "," << precalc_ops << "," << linearalg_ops << "," << probstat_ops << "," << num_indivs << ",'" << alg_str << "')";
+        stmt << ",(" << evol_id << "," << total_ops << "," << setup_ops << "," << learn_ops << "," << predict_ops << "," << total_vars << "," << scalar_vars << "," << vector_vars << "," << matrix_vars << "," << arith_ops << "," << trig_ops << "," << precalc_ops << "," << linearalg_ops << "," << probstat_ops << "," << diversity_scores[idx] << "," << fitnesses[idx] << "," << num_indivs << ",'" << alg_str << "')";
       }
       idx++;
     }
@@ -341,11 +341,11 @@ void DB_Connection::LogDiversity(int evol_id, std::vector<shared_ptr<const Algor
 
 }
 
-void DB_Connection::LogProgress(int evol_id, int num_indivs, int elapsed_secs, double mean, double stdev, double best_fit, shared_ptr<const Algorithm> best_alg){
+void DB_Connection::LogProgress(int evol_id, int num_indivs, int elapsed_secs, double mean, double stdev, double best_fit, double bestfit_diversity, shared_ptr<const Algorithm> best_alg){
     ostringstream stmt;
-    stmt << "insert into progress (evol_id, num_indivs, elapsed_secs, mean, stdev, best_fit, best_alg_str) values ";
+    stmt << "insert into progress (evol_id, num_indivs, elapsed_secs, mean, stdev, best_fit, bestfit_diversity, best_alg_str) values ";
     std::string best_alg_str = best_alg->ToReadable();
-    stmt << "(" << evol_id << "," << num_indivs << "," << elapsed_secs << "," << mean << "," << stdev << "," << best_fit << ",'" << best_alg_str << "')";
+    stmt << "(" << evol_id << "," << num_indivs << "," << elapsed_secs << "," << mean << "," << stdev << "," << best_fit << "," << bestfit_diversity << ",'" << best_alg_str << "')";
     try{
         CppSQLite3DB db;
         db.open(db_loc_);

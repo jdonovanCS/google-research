@@ -161,39 +161,44 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         
         ++next_fitness_it;
       }
-      if (qd_ == true){
-        vector<double>::iterator total_ops_it = total_ops_.begin();
-        vector<double>::iterator total_vars_it = total_vars_.begin();
-        for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
-          *total_ops_it = GetTotalOps(next_algorithm);
-          *total_vars_it = GetTotalVars(next_algorithm);
-          ++total_ops_it;
-          ++total_vars_it;
+      vector<double>::iterator total_ops_it = total_ops_.begin();
+      vector<double>::iterator total_vars_it = total_vars_.begin();
+      for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
+        *total_ops_it = GetTotalOps(next_algorithm);
+        *total_vars_it = GetTotalVars(next_algorithm);
+        ++total_ops_it;
+        ++total_vars_it;
+      }
+
+      total_ops_it = total_ops_.begin();
+      total_vars_it = total_vars_.begin();
+      double min_div = std::numeric_limits<double>::max();
+      double max_div = 0;
+      for (size_t d=0; d < diversity_scores_.size(); d++){
+        diversity_scores_[d] = 0;
+        for (double total_op : total_ops_){
+          diversity_scores_[d] += abs((*total_ops_it)-total_op);
         }
-        total_ops_it = total_ops_.begin();
-        total_vars_it = total_vars_.begin();
-        double min_div = std::numeric_limits<double>::max();
-        double max_div = 0;
-        for (double diversity_score : diversity_scores_){
-          diversity_score = 0;
-          for (double total_op : total_ops_){
-            diversity_score += abs((*total_ops_it)-total_op);
-          }
-          for (double total_var : total_vars_){
-            diversity_score += abs((*total_vars_it) - total_var);
-          }
-          if (diversity_score < min_div) {
-            min_div = diversity_score;
-          }
-          if (diversity_score > max_div) {
-            max_div = diversity_score;
-          }
-          // TODO (jdonovancs): normalize to between 0 and 1 instead of guessing at values
-          diversity_score -= min_div;
-          diversity_score /= (max_div-min_div);
-          ++total_ops_it;
-          ++total_vars_it;
+        for (double total_var : total_vars_){
+          diversity_scores_[d] += abs((*total_vars_it) - total_var);
         }
+        if (diversity_scores_[d] < min_div) {
+          min_div = diversity_scores_[d];
+        }
+        if (diversity_scores_[d] > max_div) {
+          max_div = diversity_scores_[d];
+        }
+        ++total_ops_it;
+        ++total_vars_it;
+      }
+      total_ops_it = total_ops_.begin();
+      total_vars_it = total_vars_.begin();
+      for (size_t d=0; d < diversity_scores_.size(); d++){
+        // TODO (jdonovancs): normalize to between 0 and 1 instead of guessing at values
+        diversity_scores_[d] -= min_div;
+        diversity_scores_[d] /= (max_div-min_div)*2;
+        ++total_ops_it;
+        ++total_vars_it;
       }
     }
 
@@ -267,7 +272,7 @@ shared_ptr<const Algorithm> RegularizedEvolution::GetBest(
 void RegularizedEvolution::PopulationStats(
     double* pop_mean, double* pop_stdev,
     shared_ptr<const Algorithm>* pop_best_algorithm,
-    double* pop_best_fitness) const {
+    double* pop_best_fitness, double* pop_bestfit_diversity) const {
   double total = 0.0;
   double total_squares = 0.0;
   double best_fitness = -1.0;
@@ -290,6 +295,7 @@ void RegularizedEvolution::PopulationStats(
   *pop_stdev = static_cast<double>(sqrt(var));
   *pop_best_algorithm = algorithms_[best_index];
   *pop_best_fitness = best_fitness;
+  *pop_bestfit_diversity = diversity_scores_[best_index];
 }
 
 void RegularizedEvolution::InitAlgorithm(
@@ -470,7 +476,14 @@ shared_ptr<const Algorithm>
   for (IntegerT tour_idx = 0; tour_idx < tournament_size_; ++tour_idx) {
     const IntegerT algorithm_index =
         rand_gen_->UniformPopulationSize(population_size_);
-    const double curr_fitness = fitnesses_[algorithm_index] + diversity_scores_[algorithm_index];
+    double curr_fitness = 0;
+    if (qd_ == true){
+      curr_fitness = fitnesses_[algorithm_index] + diversity_scores_[algorithm_index];
+    }
+    else
+    {
+      curr_fitness = fitnesses_[algorithm_index];
+    }
     if (best_index == -1 || curr_fitness > tour_best_fitness) {
       tour_best_fitness = curr_fitness;
       best_index = algorithm_index;
@@ -489,30 +502,32 @@ void RegularizedEvolution::MaybePrintProgress() {
     return;
   }
   num_individuals_last_progress_ = num_individuals_;
-  double pop_mean, pop_stdev, pop_best_fitness;
+  double pop_mean, pop_stdev, pop_best_fitness, pop_bestfit_diversity;
   shared_ptr<const Algorithm> pop_best_algorithm;
   PopulationStats(
-      &pop_mean, &pop_stdev, &pop_best_algorithm, &pop_best_fitness);
+      &pop_mean, &pop_stdev, &pop_best_algorithm, &pop_best_fitness &pop_bestfit_diversity);
   if (pop_best_fitness > best_fitness_){
     best_fitness_ = pop_best_fitness;
     best_alg_ = pop_best_algorithm;
   }
+  double avg_diversity = std::accumulate(diversity_scores_.begin(), diversity_scores_.end(), 0.0) / int(diversity_scores_.size());
   std::cout << "indivs=" << num_individuals_ << ", " << setprecision(0) << fixed
             << "elapsed_secs=" << epoch_secs_ - start_secs_ << ", "
             << "mean=" << setprecision(6) << fixed << pop_mean << ", "
             << "stdev=" << setprecision(6) << fixed << pop_stdev << ", "
             << "best fit=" << setprecision(6) << fixed << pop_best_fitness << ", "
-            << "best_overall=" << setprecision(6) << fixed << best_fitness_
+            << "best_overall=" << setprecision(6) << fixed << best_fitness_ << ", "
+            << "mean_diversity=" << setprecision(6) << fixed << avg_diversity
             << "," << std::endl;
   std::cout.flush();
-  db_->LogProgress(evol_id_, num_individuals_, epoch_secs_-start_secs_, pop_mean, pop_stdev, pop_best_fitness, pop_best_algorithm);
+  db_->LogProgress(evol_id_, num_individuals_, epoch_secs_-start_secs_, pop_mean, pop_stdev, pop_best_fitness, pop_bestfit_diversity, pop_best_algorithm);
 }
 
 void RegularizedEvolution::MaybeLogDiversity() {
   if (num_individuals_ < num_individuals_last_progress_ + progress_every_) {
     return;
   }
-  db_->LogDiversity(evol_id_, algorithms_, num_individuals_);
+  db_->LogDiversity(evol_id_, algorithms_, num_individuals_, diversity_scores_, fitnesses_);
 }
 
 void RegularizedEvolution::MaybePrintMapElites() {

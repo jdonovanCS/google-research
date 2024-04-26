@@ -88,7 +88,7 @@ class RegularizedEvolution {
   void PopulationStats(
       double* pop_mean, double* pop_stdev,
       std::shared_ptr<const Algorithm>* pop_best_algorithm,
-      double* pop_best_fitness) const;
+      double* pop_best_fitness, double* pop_bestfit_diversity) const;
 
  private:
   FRIEND_TEST(RegularizedEvolutionTest, TimesCorrectly);

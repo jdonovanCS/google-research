@@ -29,8 +29,8 @@ class DB_Connection{
   void Insert(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, std::vector<double> fitnesses);
   std::vector<std::shared_ptr<const Algorithm>> Migrate(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, std::vector<double> fitnesses);
 //   vector<Algorithm> migrate(vector<Algorithm> algs);
-  void LogDiversity(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, int num_indivs);
-  void LogProgress(int evol_id, int num_indivs, int elapsed_secs, double mean, double stdev, double best_fit, std::shared_ptr<const Algorithm> best_alg);
+  void LogDiversity(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, int num_indivs, std::vector<double> diversity_scores, std::vector<double> fitnesses);
+  void LogProgress(int evol_id, int num_indivs, int elapsed_secs, double mean, double stdev, double best_fit, double bestfit_diversity, std::shared_ptr<const Algorithm> best_alg);
   void LogFinal(int evol_id, std::string alg_str, double fitness);
   
   const char* db_loc_;
