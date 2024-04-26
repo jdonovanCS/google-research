@@ -188,7 +188,6 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
           if (diversity_score > max_div) {
             max_div = diversity_score;
           }
-          // TODO (jdonovancs): normalize to between 0 and 1 instead of guessing at values
           diversity_score -= min_div;
           diversity_score /= (max_div-min_div);
           ++total_ops_it;
