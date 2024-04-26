@@ -142,7 +142,19 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
       MapElites();
     }
     else{
+      bool first = true;
       for (shared_ptr<const Algorithm>& next_algorithm : algorithms_) {
+        // keep the best algorithm in the population by force
+        if (first == true){
+          double pop_mean, pop_stdev, pop_best_fitness, pop_bestfit_diversity;
+          PopulationStats(
+            &pop_mean, &pop_stdev, &next_algorithm, &pop_best_fitness &pop_bestfit_diversity);
+          best_alg_ = next_algorithm;
+          best_fitness_ = pop_best_fitness;
+          first = false;
+          continue;
+        }
+        // continue with selection and mutation as usual
         SingleParentSelect(&next_algorithm);
         mutator_->Mutate(1, &next_algorithm);
       
@@ -194,9 +206,8 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
       total_ops_it = total_ops_.begin();
       total_vars_it = total_vars_.begin();
       for (size_t d=0; d < diversity_scores_.size(); d++){
-        // TODO (jdonovancs): normalize to between 0 and 1 instead of guessing at values
         diversity_scores_[d] -= min_div;
-        diversity_scores_[d] /= (max_div-min_div)*2;
+        diversity_scores_[d] /= (max_div-min_div);
         ++total_ops_it;
         ++total_vars_it;
       }
