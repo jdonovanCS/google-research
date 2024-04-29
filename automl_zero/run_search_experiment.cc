@@ -207,12 +207,12 @@ void run() {
     cout << "Experiment done. Retrieving candidate algorithm." << endl;
 
     // Extract best algorithm based on T_search.
-    double unused_pop_mean, unused_pop_stdev, search_fitness;
+    double unused_pop_mean, unused_pop_stdev, search_fitness, unused_bestfit_diversity;
     shared_ptr<const Algorithm> candidate_algorithm =
         make_shared<const Algorithm>();
     regularized_evolution.PopulationStats(
         &unused_pop_mean, &unused_pop_stdev,
-        &candidate_algorithm, &search_fitness);
+        &candidate_algorithm, &search_fitness, &unused_bestfit_diversity);
     cout << "Search fitness for candidate algorithm = "
          << search_fitness << endl;
 

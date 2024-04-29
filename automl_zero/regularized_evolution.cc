@@ -148,7 +148,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         if (first == true){
           double pop_mean, pop_stdev, pop_best_fitness, pop_bestfit_diversity;
           PopulationStats(
-            &pop_mean, &pop_stdev, &next_algorithm, &pop_best_fitness &pop_bestfit_diversity);
+            &pop_mean, &pop_stdev, &next_algorithm, &pop_best_fitness, &pop_bestfit_diversity);
           best_alg_ = next_algorithm;
           best_fitness_ = pop_best_fitness;
           first = false;
@@ -516,7 +516,7 @@ void RegularizedEvolution::MaybePrintProgress() {
   double pop_mean, pop_stdev, pop_best_fitness, pop_bestfit_diversity;
   shared_ptr<const Algorithm> pop_best_algorithm;
   PopulationStats(
-      &pop_mean, &pop_stdev, &pop_best_algorithm, &pop_best_fitness &pop_bestfit_diversity);
+      &pop_mean, &pop_stdev, &pop_best_algorithm, &pop_best_fitness, &pop_bestfit_diversity);
   if (pop_best_fitness > best_fitness_){
     best_fitness_ = pop_best_fitness;
     best_alg_ = pop_best_algorithm;
