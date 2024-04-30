@@ -151,7 +151,9 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
             &pop_mean, &pop_stdev, &next_algorithm, &pop_best_fitness, &pop_bestfit_diversity);
           best_alg_ = next_algorithm;
           best_fitness_ = pop_best_fitness;
+          *next_fitness_it = pop_best_fitness;
           first = false;
+          next_fitness_it++;
           continue;
         }
         // continue with selection and mutation as usual
@@ -173,39 +175,46 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         
         ++next_fitness_it;
       }
-      if (qd_ == true){
-        vector<double>::iterator total_ops_it = total_ops_.begin();
-        vector<double>::iterator total_vars_it = total_vars_.begin();
-        for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
-          *total_ops_it = GetTotalOps(next_algorithm);
-          *total_vars_it = GetTotalVars(next_algorithm);
-          ++total_ops_it;
-          ++total_vars_it;
-        }
-        total_ops_it = total_ops_.begin();
-        total_vars_it = total_vars_.begin();
-        double min_div = std::numeric_limits<double>::max();
-        double max_div = 0;
-        for (double diversity_score : diversity_scores_){
-          diversity_score = 0;
-          for (double total_op : total_ops_){
-            diversity_score += abs((*total_ops_it)-total_op);
-          }
-          for (double total_var : total_vars_){
-            diversity_score += abs((*total_vars_it) - total_var);
-          }
-          if (diversity_score < min_div) {
-            min_div = diversity_score;
-          }
-          if (diversity_score > max_div) {
-            max_div = diversity_score;
-          }
-          diversity_score -= min_div;
-          diversity_score /= (max_div-min_div);
-          ++total_ops_it;
-          ++total_vars_it;
-        }
+      // if (qd_ == true){
+      vector<double>::iterator total_ops_it = total_ops_.begin();
+      vector<double>::iterator total_vars_it = total_vars_.begin();
+      for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
+        *total_ops_it = GetTotalOps(next_algorithm);
+        *total_vars_it = GetTotalVars(next_algorithm);
+        ++total_ops_it;
+        ++total_vars_it;
       }
+      total_ops_it = total_ops_.begin();
+      total_vars_it = total_vars_.begin();
+      double min_div = std::numeric_limits<double>::max();
+      double max_div = 0;
+      for (size_t d=0; d < diversity_scores_.size(); d++){
+        diversity_scores_[d] = 0;
+        for (double total_op : total_ops_){
+          diversity_scores_[d] += abs((*total_ops_it)-total_op);
+        }
+        for (double total_var : total_vars_){
+          diversity_scores_[d] += abs((*total_vars_it) - total_var);
+        }
+        if (diversity_scores_[d] < min_div) {
+          min_div = diversity_scores_[d];
+        }
+        if (diversity_scores_[d] > max_div) {
+          max_div = diversity_scores_[d];
+        }
+        ++total_ops_it;
+        ++total_vars_it;
+      }
+      total_ops_it = total_ops_.begin();
+      total_vars_it = total_vars_.begin();
+      for (size_t d=0; d < diversity_scores_.size(); d++){
+        diversity_scores_[d] -= min_div;
+        diversity_scores_[d] /= (max_div-min_div);
+        ++total_ops_it;
+        ++total_vars_it;
+      }
+  // }
+
     }
 
     
