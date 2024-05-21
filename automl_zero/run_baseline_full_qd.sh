@@ -23,10 +23,10 @@ bazel run -c opt \
   --copt=-DMAX_SCALAR_ADDRESSES=5 \
   --copt=-DMAX_VECTOR_ADDRESSES=9 \
   --copt=-DMAX_MATRIX_ADDRESSES=2 \
-  --script_path run_baseline_nobuild.sh \
+  --script_path run_baseline_full_qd_nobuild.sh \
   --action_env=CC=/usr/bin/gcc \
   //:run_search_experiment -- \
-  --experiment_name="baseline" \
+  --experiment_name="baseline_full_qd" \
   --search_experiment_spec=" \
     search_tasks { \
       tasks { \
@@ -59,7 +59,9 @@ bazel run -c opt \
     mutate_setup_size_min: 1 \
     mutate_setup_size_max: 7 \
     predict_size_init: 1 \
-    hurdles: 0 \
+    hurdles: 1 \
+    qd: 1 \
+    fec: {num_train_examples: 10 num_valid_examples: 10} \
     mutate_predict_size_min: 1 \
     mutate_predict_size_max: 11 \
     learn_size_init: 1 \
@@ -153,6 +155,6 @@ bazel run -c opt \
       num_tasks: 10 \
       eval_type: ACCURACY \
     } \
-    " && ./run_baseline_nobuild.sh
+    " && ./run_baseline_full_qd_nobuild.sh
 
     #fec {num_train_examples: 10 num_valid_examples: 10} \
