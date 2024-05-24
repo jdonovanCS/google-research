@@ -1,6 +1,6 @@
 # Google Research
 
-This repository contains code released by
+This repository is forked from code released by
 [Google Research](https://research.google).
 
 All datasets in this repository are released under the CC BY 4.0 International
