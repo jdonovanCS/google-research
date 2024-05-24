@@ -176,6 +176,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         ++next_fitness_it;
       }
       // if (qd_ == true){
+      // getting total ops and vars for each algorithm
       vector<double>::iterator total_ops_it = total_ops_.begin();
       vector<double>::iterator total_vars_it = total_vars_.begin();
       for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
@@ -184,6 +185,9 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         ++total_ops_it;
         ++total_vars_it;
       }
+
+      // calculating raw diversity metric values by comparing total number of ops
+      // and total number of vars for every algorithm (pairwise)
       total_ops_it = total_ops_.begin();
       total_vars_it = total_vars_.begin();
       double min_div = std::numeric_limits<double>::max();
@@ -205,6 +209,8 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         ++total_ops_it;
         ++total_vars_it;
       }
+
+      // regularizing diversity values between [0, 1]
       total_ops_it = total_ops_.begin();
       total_vars_it = total_vars_.begin();
       for (size_t d=0; d < diversity_scores_.size(); d++){
@@ -448,6 +454,7 @@ int RegularizedEvolution::GetTotalOps(shared_ptr<const Algorithm> alg){
         
         predict_ops++;
       }
+
       total_ops = setup_ops+learn_ops+predict_ops;
       return total_ops;
 }
