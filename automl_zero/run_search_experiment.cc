@@ -279,6 +279,42 @@ void run() {
   cout << "Algorithm found: " << endl
        << best_algorithm->ToReadable() << endl;
   db.LogFinal(evol_id, best_algorithm->ToReadable(), final_fitness);
+
+
+  // Stack the final solution for each algorithmic section (setup, predict, learn)
+  // And do a final evaluation with it on the same unseen tasks.
+  int stack_repeat = 3;
+  shared_ptr<Algorithm> stacked_best_algorithm = make_shared<Algorithm>();
+  auto stacked = make_unique<Algorithm>(*stacked_best_algorithm);
+  for (int i=0; i<stack_repeat; i++){
+    for (const shared_ptr<const Instruction> instruction : best_algorithm->setup_) {
+        vector<shared_ptr<const Instruction>>* component_function = &stacked_best_algorithm->setup_;
+        const InstructionIndexT position = stacked->setup_.size() + 1;
+        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen));
+    }
+    for (const shared_ptr<const Instruction>& instruction : best_algorithm->learn_) {
+        vector<shared_ptr<const Instruction>>* component_function = &stacked_best_algorithm->learn_;
+        const InstructionIndexT position = stacked->learn_.size() + 1;
+        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen));
+    }
+    for (const shared_ptr<const Instruction>& instruction : best_algorithm->predict_) {
+        vector<shared_ptr<const Instruction>>* component_function = &stacked_best_algorithm->predict_;
+        const InstructionIndexT position = stacked->predict_.size() + 1;
+        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen));
+    }
+  }
+
+  cout << endl;
+  cout << "Final evaluation of best algorithm stacked thrice "
+       << "(on the same tasks above)..." << endl;
+  const double final_stacked_fitness = 
+      final_evaluator.Evaluate(*stacked_best_algorithm);
+  
+  cout << "Final evaluation fitness for stacked algorithm (on same data above) = "
+       << final_stacked_fitness << endl;
+  cout << "Stacked Algorithm: " << endl
+       << stacked_best_algorithm->ToReadable() << endl;
+
 }
 
 }  // namespace automl_zero
