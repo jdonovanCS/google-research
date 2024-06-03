@@ -341,6 +341,7 @@ void DB_Connection::LogDiversity(int evol_id, std::vector<shared_ptr<const Algor
 
 }
 
+//TODO (jdonovancs): insert serialized version of algorithm to read for stacking
 void DB_Connection::LogProgress(int evol_id, int num_indivs, int elapsed_secs, double mean, double stdev, double best_fit, double bestfit_diversity, shared_ptr<const Algorithm> best_alg){
     ostringstream stmt;
     stmt << "insert into progress (evol_id, num_indivs, elapsed_secs, mean, stdev, best_fit, bestfit_diversity, best_alg_str) values ";
@@ -360,8 +361,8 @@ void DB_Connection::LogProgress(int evol_id, int num_indivs, int elapsed_secs, d
 
 void DB_Connection::LogFinal(int evol_id, std::string alg_str, double fitness){
     ostringstream stmt;
-    stmt << "insert into final (fitness, alg_str) values ";
-    stmt << "(" << fitness << ",'" << alg_str << "')";
+    stmt << "insert into final (evol_id, fitness, alg_str) values ";
+    stmt << "(" << evol_id << "," << fitness << ",'" << alg_str << "')";
     try{
         CppSQLite3DB db;
         db.open(db_loc_);
@@ -371,6 +372,36 @@ void DB_Connection::LogFinal(int evol_id, std::string alg_str, double fitness){
     }
     catch (CppSQLite3Exception& e){
         std::cerr << "Error Logging Final: " << e.errorCode() << ":" << e.errorMessage() << endl;
+    }
+}
+
+//TODO (jdonovancs): once we have inserted serialized version into progress, retrieve it here and stack.
+shared_ptr<const Algorithm> DB_Connection::getBestAlgorithm(int evol_id){
+    try{
+        CppSQLite3DB db;
+
+        db.open(db_loc_);
+        ostringstream stmt;
+        stmt << "select * from progress where evol_id = " << evol_id << " order by num_indivs desc limit 1;";
+        CppSQLite3Query q = db.execQuery(stmt.str().c_str());
+        shared_ptr<const Algorithm> sh_alg = make_shared<const Algorithm>();
+            
+        int i =0;
+        while (!q.eof())
+        {
+            auto alg = ParseTextFormat<SerializedAlgorithm>(q.fieldValue(8));
+            sh_alg = make_shared<const Algorithm>(alg);
+            q.nextRow();
+            i++;
+        }
+        
+        cout << i << " algorithm retrieved for evol_id=" << evol_id << endl;
+        
+        db.close();
+        return sh_alg;
+    }
+    catch (CppSQLite3Exception& e){
+        std::cerr << "Error retrieving best algorithm: " << e.errorCode() << ":" << e.errorMessage() << endl;
     }
 }
 

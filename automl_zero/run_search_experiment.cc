@@ -283,24 +283,34 @@ void run() {
 
   // Stack the final solution for each algorithmic section (setup, predict, learn)
   // And do a final evaluation with it on the same unseen tasks.
+  std::unique_ptr<mt19937> bit_gen_o = make_unique<mt19937>(GenerateRandomSeed());
+  mt19937* bit_gen2 = bit_gen_o.get();
+  std::unique_ptr<RandomGenerator> rand_gen_o = make_unique<RandomGenerator>(bit_gen2);
+  RandomGenerator* rand_gen2 = rand_gen_o.get();
   int stack_repeat = 3;
   shared_ptr<Algorithm> stacked_best_algorithm = make_shared<Algorithm>();
+//   stacked_best_algorithm = make_shared<Algorithm>(generator.TheInitModel());
   auto stacked = make_unique<Algorithm>(*stacked_best_algorithm);
   for (int i=0; i<stack_repeat; i++){
     for (const shared_ptr<const Instruction> instruction : best_algorithm->setup_) {
         vector<shared_ptr<const Instruction>>* component_function = &stacked_best_algorithm->setup_;
-        const InstructionIndexT position = stacked->setup_.size() + 1;
-        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen));
+        const InstructionIndexT position = component_function->size();
+        auto instr = instruction.get()->Serialize();
+        // component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen2));
+        // Instruction new_instr = instruction.get();
+        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instr));
     }
     for (const shared_ptr<const Instruction>& instruction : best_algorithm->learn_) {
         vector<shared_ptr<const Instruction>>* component_function = &stacked_best_algorithm->learn_;
-        const InstructionIndexT position = stacked->learn_.size() + 1;
-        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen));
+        const InstructionIndexT position = component_function->size();
+        auto instr = instruction.get()->Serialize();
+        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instr));
     }
     for (const shared_ptr<const Instruction>& instruction : best_algorithm->predict_) {
         vector<shared_ptr<const Instruction>>* component_function = &stacked_best_algorithm->predict_;
-        const InstructionIndexT position = stacked->predict_.size() + 1;
-        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instruction->op_, rand_gen));
+        const InstructionIndexT position = component_function->size();
+        auto instr = instruction.get()->Serialize();
+        component_function->insert(component_function->begin() + position, make_shared<const Instruction>(instr));
     }
   }
 

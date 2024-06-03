@@ -32,6 +32,7 @@ class DB_Connection{
   void LogDiversity(int evol_id, std::vector<std::shared_ptr<const Algorithm>> algs, int num_indivs, std::vector<double> diversity_scores, std::vector<double> fitnesses);
   void LogProgress(int evol_id, int num_indivs, int elapsed_secs, double mean, double stdev, double best_fit, double bestfit_diversity, std::shared_ptr<const Algorithm> best_alg);
   void LogFinal(int evol_id, std::string alg_str, double fitness);
+  std::shared_ptr<const Algorithm> getBestAlgorithm(int evol_id);
   
   const char* db_loc_;
   

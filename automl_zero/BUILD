@@ -702,7 +702,6 @@ cc_library(
     copts = ["-I"]
 )
 
-
 cc_library(
     name = "db_connection",
     srcs = ["db_connection.cc"],
@@ -711,5 +710,26 @@ cc_library(
         ":CppSQLite3",
         ":definitions",
         ":algorithm",
+    ],
+)
+
+cc_binary(
+    name = "stack",
+    srcs = ["stack.cc"],
+    deps = [
+        ":algorithm",
+        ":dataset_util",
+        ":datasets_cc_proto",
+        ":definitions",
+        ":evaluator",
+        ":experiment_cc_proto",
+        ":experiment_util",
+        ":instruction_cc_proto",
+        ":random_generator",
+        ":db_connection",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/time",
+        "@com_google_protobuf//:protobuf",
     ],
 )
