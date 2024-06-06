@@ -92,6 +92,15 @@ Note we left out of this directory upgrades for the "Full" method that are
 pre-existing (hurdles) but included those introduced in this paper (e.g. FEC
 for ML algorithms).
 
+
+## Experiments on HPC 
+
+When running experiments on HPC:
+1. Make sure to include out file in pbs script.
+2. Make sure that the database files being created are new or that they are being tracked correctly.
+3. Make sure that .sh files are built correctly and running with the correct settings.
+4. Make sure files are copied to a location other than $WORK on HPC because this gets cleaned every two weeks.
+
 ## Citation
 
 If you use the code in your research, please cite:
