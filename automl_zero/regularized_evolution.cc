@@ -222,7 +222,6 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
   // }
 
     }
-
     
     if (use_hurdles_ == true) {
       // Sorting entire fitness vector and removing duplicate items
@@ -250,6 +249,7 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
     // hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
     MaybeLogDiversity();
     MaybePrintProgress();
+    
   }
   return evaluator_->GetNumTrainStepsCompleted() - start_train_steps;
 }
@@ -327,7 +327,7 @@ void RegularizedEvolution::InitAlgorithm(
 }
 
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
-  if (hurdle_ != 0 && earlyEval == true) or (hurdle_ == 0){
+  if ((hurdle_ != 0 && earlyEval == true) || (hurdle_ == 0)){
     ++num_individuals_;
   }
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;

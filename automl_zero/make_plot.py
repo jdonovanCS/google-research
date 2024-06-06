@@ -19,7 +19,7 @@ dbs = [
 colors = ['blue', 'orange', 'red', 'purple']
 
 table = "progress"
-fields = "evol_id, bestfit_diversity, num_indivs"
+fields = "evol_id, best_fit, num_indivs"
 where_clause = "TRUE"
 order_by = "num_indivs desc"
 results = {d: {} for d in dbs}
@@ -102,49 +102,45 @@ for db in dbs:
 
 for i, (db, v) in enumerate(results.items()):
     print(db)
-    count = 0
     db_y, db_x = [], []
     color = colors[i]
     for evol_id in results[db]:
-        if count < 10:
-            y, x = zip(*results[db][evol_id])
-            db_x.extend(x)
-            db_y.extend(y)
-            sns.lineplot(x=x, y=y)
-            count += 1
+        y, x = zip(*results[db][evol_id])
+        db_x.extend(x)
+        db_y.extend(y)
+        # sns.lineplot(x=x, y=y)
     # print(len(db_x), len(db_y))
     # plt.plot(np.unique(db_y), np.poly1d(np.polyfit(db_y, db_x, 1)), (np.unique(db_y)), color=color)
     # ax=sns.regplot(x=db_x, y=db_y, scatter_kws={'s':1}, logx=True)
     # ax.set_xscale('log')
-    plt.show()
+    # plt.show()
 
     x_dict = {}
     tens = 0
     x_vals = []
     y_vals = []
-    for j in range(len(db_y)):
-        if j // 10 > tens:
-            x_dict[np.mean(np.array(x_vals))] = np.mean(np.array(y_vals))
-            tens += 1
-            x_vals = []
-            y_vals = []
-        x_vals.append(db_x[j])
-        y_vals.append(db_y[j])
+    x_dict = {}
+    for j, y_val in enumerate(db_y):
+        if db_x[j] not in x_dict:
+            x_dict[db_x[j]] = []
+        x_dict[db_x[j]].append(y_val)
+
 
     # print(x_dict)
     x_dict = OrderedDict(sorted(x_dict.items()))
     print(len(x_dict))
-    print(x_dict)
+    print([len(x_dict[k]) for k in list(x_dict.keys())])
 
-    sns.lineplot(x=list(x_dict.keys()), y=list(x_dict.values()), label=db)
+    # sns.lineplot(x=list(x_dict.keys()), y=list(x_dict.values()), label=db)
 
-    # x_avg, y_avg = [], []
+    x_avg, y_avg = [], []
     # count = 0
-    # for x_val, y_vals in x_dict.items():
-    #     if count % 10 == 0:
-    #         x_avg.append(x_val)
-    #         y_avg.append(float(np.mean(np.array(y_vals))))
-    #     count+=1
+    for x_val, y_vals in x_dict.items():
+        # if count % 10 == 0:
+        if len(y_vals) >= 95:
+            x_avg.append(x_val)
+            y_avg.append(float(np.mean(np.array(y_vals))))
+        # count+=1
     
     # data = pd.DataFrame()
     # data['x'] = x_avg
@@ -152,7 +148,7 @@ for i, (db, v) in enumerate(results.items()):
     # print(data.head())
     # # sns.lmplot(data=data, ci=None, x='x', y='y', order=20, scatter=False)
     # # sns.regplot(x=x_avg, y=y_avg, label=db, scatter_kws={'s':1}, scatter=False, order=1)
-    # sns.lineplot(x=x_avg, y=y_avg, label=db)
+    sns.lineplot(x=x_avg, y=y_avg, label=db)
 
 
 # plt.legend()
