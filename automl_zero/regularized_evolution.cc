@@ -327,7 +327,7 @@ void RegularizedEvolution::InitAlgorithm(
 }
 
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
-  if (hurdle_ != 0 && earlyEval == true) or (hurdle_==0){
+  if (hurdle_ != 0 && earlyEval == true) or (hurdle_ == 0){
     ++num_individuals_;
   }
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
