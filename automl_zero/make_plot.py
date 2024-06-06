@@ -3,18 +3,25 @@ from matplotlib import pyplot as plt
 import os
 import sqlite3
 import seaborn as sns
+from collections import OrderedDict
+import pandas as pd
 
 baseline_db = "baseline.db3"
 baseline_full_db = "baseline_full.db3"
 baseline_qd_db = "baseline_qd.db3"
 baseline_full_qd_db = "baseline_full_qd.db3"
 
-dbs = [baseline_db, baseline_qd_db, baseline_full_db, baseline_full_qd_db]
+dbs = [
+    baseline_db, 
+    baseline_qd_db]
+    # baseline_full_db,
+    # baseline_full_qd_db]
 colors = ['blue', 'orange', 'red', 'purple']
 
 table = "progress"
-fields = "evol_id, mean, num_indivs"
+fields = "evol_id, bestfit_diversity, num_indivs"
 where_clause = "TRUE"
+order_by = "num_indivs desc"
 results = {d: {} for d in dbs}
 
 def plot_mean_and_bootstrapped_ci_multiple(input_data = None, title = 'overall', name = "change this", x_label = "x", y_label = "y", x_mult=1, y_mult=1, save_name="", compute_CI=True, maximum_possible=None, show=None, sample_interval=None, legend_loc=None, alpha=1, y=None):
@@ -81,7 +88,7 @@ for db in dbs:
 
     conn = sqlite3.connect(db)
     c = conn.cursor()
-    query = "SELECT " + fields + " FROM " + table + " WHERE " + where_clause + ";"
+    query = "SELECT " + fields + " FROM " + table + " WHERE " + where_clause + " order by " + order_by + ";"
     # print(query)
     res = c.execute(query)
     res = res.fetchall()
@@ -91,21 +98,68 @@ for db in dbs:
             results[db][r[0]] = []
         results[db][r[0]].append((r[1], r[2]))
 
-print(results)
+# print(results)
 
 for i, (db, v) in enumerate(results.items()):
-    db_x, db_y = [], []
+    print(db)
+    count = 0
+    db_y, db_x = [], []
     color = colors[i]
     for evol_id in results[db]:
-        x, y = zip(*results[db][evol_id])
-        db_x.extend(x)
-        db_y.extend(y)
+        if count < 10:
+            y, x = zip(*results[db][evol_id])
+            db_x.extend(x)
+            db_y.extend(y)
+            sns.lineplot(x=x, y=y)
+            count += 1
     # print(len(db_x), len(db_y))
     # plt.plot(np.unique(db_y), np.poly1d(np.polyfit(db_y, db_x, 1)), (np.unique(db_y)), color=color)
-    ax=sns.regplot(x=db_y, y=db_x, scatter_kws={'s':1}, logx=True)
+    # ax=sns.regplot(x=db_x, y=db_y, scatter_kws={'s':1}, logx=True)
     # ax.set_xscale('log')
     plt.show()
 
+    x_dict = {}
+    tens = 0
+    x_vals = []
+    y_vals = []
+    for j in range(len(db_y)):
+        if j // 10 > tens:
+            x_dict[np.mean(np.array(x_vals))] = np.mean(np.array(y_vals))
+            tens += 1
+            x_vals = []
+            y_vals = []
+        x_vals.append(db_x[j])
+        y_vals.append(db_y[j])
+
+    # print(x_dict)
+    x_dict = OrderedDict(sorted(x_dict.items()))
+    print(len(x_dict))
+    print(x_dict)
+
+    sns.lineplot(x=list(x_dict.keys()), y=list(x_dict.values()), label=db)
+
+    # x_avg, y_avg = [], []
+    # count = 0
+    # for x_val, y_vals in x_dict.items():
+    #     if count % 10 == 0:
+    #         x_avg.append(x_val)
+    #         y_avg.append(float(np.mean(np.array(y_vals))))
+    #     count+=1
+    
+    # data = pd.DataFrame()
+    # data['x'] = x_avg
+    # data['y'] = y_avg
+    # print(data.head())
+    # # sns.lmplot(data=data, ci=None, x='x', y='y', order=20, scatter=False)
+    # # sns.regplot(x=x_avg, y=y_avg, label=db, scatter_kws={'s':1}, scatter=False, order=1)
+    # sns.lineplot(x=x_avg, y=y_avg, label=db)
+
+
+# plt.legend()
+plt.show()
+            
+
+        
     
 
 
