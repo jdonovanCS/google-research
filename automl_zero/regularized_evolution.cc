@@ -327,7 +327,9 @@ void RegularizedEvolution::InitAlgorithm(
 }
 
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
-  ++num_individuals_;
+  if (hurdle_ != 0 && earlyEval == true) or (hurdle_ == 0){
+    ++num_individuals_;
+  }
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
   if (earlyEval == true && true == true) {
     const double fitness_early = evaluator_->EarlyEvaluate(*algorithm);
