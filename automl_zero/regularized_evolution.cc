@@ -89,6 +89,11 @@ RegularizedEvolution::RegularizedEvolution(
       qd_(qd),
       diversity_scores_(population_size_, 0),
       total_ops_(population_size_),
+      arith_ops_(population_size_),
+      trig_ops_(population_size_),
+      precalc_ops_(population_size_),
+      linearalg_ops_(population_size_),
+      probstat_ops_(population_size_),
       total_vars_(population_size_),
       best_alg_(algorithms_[0]),
       best_fitness_(0.0),
@@ -176,19 +181,37 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         ++next_fitness_it;
       }
       // if (qd_ == true){
-      // getting total ops and vars for each algorithm
       vector<double>::iterator total_ops_it = total_ops_.begin();
+
+      vector<double>::iterator arith_ops_it = arith_ops_.begin();
+      vector<double>::iterator trig_ops_it = trig_ops_.begin();
+      vector<double>::iterator precalc_ops_it = precalc_ops_.begin();
+      vector<double>::iterator linearalg_ops_it = linearalg_ops_.begin();
+      vector<double>::iterator probstat_ops_it = probstat_ops_.begin();
+
       vector<double>::iterator total_vars_it = total_vars_.begin();
       for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
-        *total_ops_it = GetTotalOps(next_algorithm);
+        OpsResults oResults = GetOps(next_algorithm);
+        *total_ops_it = oResults.total_ops;
+
+        *arith_ops_it = oResults.arith_ops;
+        *trig_ops_it = oResults.trig_ops;
+        *precalc_ops_it = oResults.precalc_ops;
+        *linearalg_ops_it = oResults.linearalg_ops;
+        *probstat_ops_it = oResults.probstat_ops;
+
         *total_vars_it = GetTotalVars(next_algorithm);
         ++total_ops_it;
         ++total_vars_it;
       }
-
-      // calculating raw diversity metric values by comparing total number of ops
-      // and total number of vars for every algorithm (pairwise)
       total_ops_it = total_ops_.begin();
+
+      arith_ops_it = arith_ops_.begin();
+      trig_ops_it = trig_ops_.begin();
+      precalc_ops_it = precalc_ops_.begin();
+      linearalg_ops_it = linearalg_ops_.begin();
+      probstat_ops_it = probstat_ops_.begin();
+
       total_vars_it = total_vars_.begin();
       double min_div = std::numeric_limits<double>::max();
       double max_div = 0;
@@ -197,6 +220,23 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         for (double total_op : total_ops_){
           diversity_scores_[d] += abs((*total_ops_it)-total_op);
         }
+
+        for (double arith_op : arith_ops_){
+          diversity_scores_[d] += abs((*arith_ops_it)-arith_op);
+        }
+        for (double trig_op : trig_ops_){
+          diversity_scores_[d] += abs((*trig_ops_it)-trig_op);
+        }
+        for (double precalc_op : precalc_ops_){
+          diversity_scores_[d] += abs((*precalc_ops_it)-precalc_op);
+        }
+        for (double linearalg_op : linearalg_ops_){
+          diversity_scores_[d] += abs((*linearalg_ops_it)-linearalg_op);
+        }
+        for (double probstat_op : probstat_ops_){
+          diversity_scores_[d] += abs((*probstat_ops_it)-probstat_op);
+        }
+
         for (double total_var : total_vars_){
           diversity_scores_[d] += abs((*total_vars_it) - total_var);
         }
@@ -207,21 +247,41 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
           max_div = diversity_scores_[d];
         }
         ++total_ops_it;
+
+        arith_ops_it = arith_ops_.begin();
+        trig_ops_it = trig_ops_.begin();
+        precalc_ops_it = precalc_ops_.begin();
+        linearalg_ops_it = linearalg_ops_.begin();
+        probstat_ops_it = probstat_ops_.begin();
+        
         ++total_vars_it;
       }
-
-      // regularizing diversity values between [0, 1]
       total_ops_it = total_ops_.begin();
+
+      arith_ops_it = arith_ops_.begin();
+      trig_ops_it = trig_ops_.begin();
+      precalc_ops_it = precalc_ops_.begin();
+      linearalg_ops_it = linearalg_ops_.begin();
+      probstat_ops_it = probstat_ops_.begin();
+
       total_vars_it = total_vars_.begin();
       for (size_t d=0; d < diversity_scores_.size(); d++){
         diversity_scores_[d] -= min_div;
         diversity_scores_[d] /= (max_div-min_div);
         ++total_ops_it;
+
+        ++arith_ops_it;
+        ++trig_ops_it;
+        ++precalc_ops_it;
+        ++linearalg_ops_it;
+        ++probstat_ops_it;
+
         ++total_vars_it;
       }
   // }
 
     }
+
     
     if (use_hurdles_ == true) {
       // Sorting entire fitness vector and removing duplicate items
@@ -249,7 +309,6 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
     // hurdle_ = unique_fitnesses[int(unique_fitnesses.size()*.75)];
     MaybeLogDiversity();
     MaybePrintProgress();
-    
   }
   return evaluator_->GetNumTrainStepsCompleted() - start_train_steps;
 }
@@ -327,9 +386,7 @@ void RegularizedEvolution::InitAlgorithm(
 }
 
 double RegularizedEvolution::Execute(shared_ptr<const Algorithm> algorithm, bool earlyEval=false) {
-  if ((hurdle_ != 0 && earlyEval == true) || (hurdle_ == 0)){
-    ++num_individuals_;
-  }
+  ++num_individuals_;
   epoch_secs_ = GetCurrentTimeNanos() / kNanosPerSecond;
   if (earlyEval == true && true == true) {
     const double fitness_early = evaluator_->EarlyEvaluate(*algorithm);
@@ -354,7 +411,7 @@ void RegularizedEvolution::MapElites(){
   int fit_idx = 0;
   for (shared_ptr<const Algorithm> next_algorithm : algorithms_){
     int total_vars = GetTotalVars(next_algorithm);
-    int total_ops = GetTotalOps(next_algorithm);
+    int total_ops = GetOps(next_algorithm).total_ops;
     int idx = (total_vars*row_length) + total_ops;
     if (fitnesses_[fit_idx] >= map_elites_grid_fitnesses_[idx]){
       map_elites_grid_[idx] = next_algorithm;
@@ -381,8 +438,21 @@ void RegularizedEvolution::MapElites(){
   }
 }
 
+class OpsResults {
+  public:
+    int total_ops;
+    int arith_ops;
+    int trig_ops;
+    int precalc_ops;
+    int linearalg_ops;
+    int probstat_ops;
+
+    OpsResults(int o1, int o2, int o3, int o4, int o5, int o6): total_ops(o1), arith_ops(o2), trig_ops(o3), precalc_ops(o4), linearalg_ops(o5), probstat_ops(o6) {}
+};
+
 //TODO (jdonovancs): Maybe make a class to keep these variables in. Or add to algorithm at some point?
-int RegularizedEvolution::GetTotalOps(shared_ptr<const Algorithm> alg){
+// (dramesh): Added OpsResult Class to Addres Above
+OpsResults RegularizedEvolution::GetOps(shared_ptr<const Algorithm> alg){
       std::vector<int> arith_op_key{0,1,2,3,4,5,6};
       std::vector<int> trig_op_key{7,8,9,10,11,12};
       std::vector<int> precalc_op_key{13,14,15,16,17};
@@ -456,9 +526,8 @@ int RegularizedEvolution::GetTotalOps(shared_ptr<const Algorithm> alg){
         
         predict_ops++;
       }
-
       total_ops = setup_ops+learn_ops+predict_ops;
-      return total_ops;
+      return OpsResults(total_ops, arith_ops, trig_ops, precalc_ops, linearalg_ops, probstat_ops);
 }
 
 int RegularizedEvolution::GetTotalVars(shared_ptr<const Algorithm> alg){

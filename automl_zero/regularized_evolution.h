@@ -103,7 +103,7 @@ class RegularizedEvolution {
 
   void InitAlgorithm(std::shared_ptr<const Algorithm>* algorithm);
   void MapElites();
-  int GetTotalOps(std::shared_ptr<const Algorithm> alg);
+  int GetOps(std::shared_ptr<const Algorithm> alg);
   int GetTotalVars(std::shared_ptr<const Algorithm> alg);
   double Execute(std::shared_ptr<const Algorithm> algorithm, bool earlyEval);
   std::shared_ptr<const Algorithm> BestFitnessTournament();
@@ -139,6 +139,11 @@ class RegularizedEvolution {
   std::vector<double> early_fitnesses_;
   std::vector<double> diversity_scores_;
   std::vector<double> total_ops_;
+  std::vector<double> arith_ops_;
+  std::vector<double> trig_ops_;
+  std::vector<double> precalc_ops_;
+  std::vector<double> linearalg_ops_;
+  std::vector<double> probstat_ops_;
   std::vector<double> total_vars_;
   std::shared_ptr<const Algorithm> best_alg_;
   double best_fitness_;
