@@ -29,6 +29,7 @@
 #include "executor.h"
 #include "instruction.h"
 #include "random_generator.h"
+#include "ops_results.h"
 #include "absl/flags/flag.h"
 #include "absl/memory/memory.h"
 #include "absl/time/clock.h"
@@ -88,12 +89,7 @@ RegularizedEvolution::RegularizedEvolution(
       early_fitnesses_(population_size_),
       qd_(qd),
       diversity_scores_(population_size_, 0),
-      total_ops_(population_size_),
-      arith_ops_(population_size_),
-      trig_ops_(population_size_),
-      precalc_ops_(population_size_),
-      linearalg_ops_(population_size_),
-      probstat_ops_(population_size_),
+      OpsResults_(population_size_),
       total_vars_(population_size_),
       best_alg_(algorithms_[0]),
       best_fitness_(0.0),
@@ -181,101 +177,49 @@ IntegerT RegularizedEvolution::Run(const IntegerT max_train_steps,
         ++next_fitness_it;
       }
       // if (qd_ == true){
-      vector<double>::iterator total_ops_it = total_ops_.begin();
-
-      vector<double>::iterator arith_ops_it = arith_ops_.begin();
-      vector<double>::iterator trig_ops_it = trig_ops_.begin();
-      vector<double>::iterator precalc_ops_it = precalc_ops_.begin();
-      vector<double>::iterator linearalg_ops_it = linearalg_ops_.begin();
-      vector<double>::iterator probstat_ops_it = probstat_ops_.begin();
-
+      vector<OpsResults>::iterator ops_results_it = OpsResults_.begin();
       vector<double>::iterator total_vars_it = total_vars_.begin();
       for (shared_ptr<const Algorithm>& next_algorithm: algorithms_){
-        OpsResults oResults = GetOps(next_algorithm);
-        *total_ops_it = oResults.total_ops;
-
-        *arith_ops_it = oResults.arith_ops;
-        *trig_ops_it = oResults.trig_ops;
-        *precalc_ops_it = oResults.precalc_ops;
-        *linearalg_ops_it = oResults.linearalg_ops;
-        *probstat_ops_it = oResults.probstat_ops;
-
+        *ops_results_it = GetOps(next_algorithm);
         *total_vars_it = GetTotalVars(next_algorithm);
-        ++total_ops_it;
+        ++ops_results_it;
         ++total_vars_it;
       }
-      total_ops_it = total_ops_.begin();
 
-      arith_ops_it = arith_ops_.begin();
-      trig_ops_it = trig_ops_.begin();
-      precalc_ops_it = precalc_ops_.begin();
-      linearalg_ops_it = linearalg_ops_.begin();
-      probstat_ops_it = probstat_ops_.begin();
-
+      ops_results_it = OpsResults_.begin();
       total_vars_it = total_vars_.begin();
       double min_div = std::numeric_limits<double>::max();
       double max_div = 0;
       for (size_t d=0; d < diversity_scores_.size(); d++){
         diversity_scores_[d] = 0;
-        for (double total_op : total_ops_){
-          diversity_scores_[d] += abs((*total_ops_it)-total_op);
+        for (OpsResults ops_results : OpsResults_){
+          // diversity_scores_[d] += abs((*ops_results_it->total_ops)-ops_results.total_ops);
+          diversity_scores_[d] += abs(((*ops_results_it).arith_ops)-ops_results.arith_ops);        
+          diversity_scores_[d] += abs(((*ops_results_it).trig_ops)-ops_results.trig_ops);
+          diversity_scores_[d] += abs(((*ops_results_it).precalc_ops)-ops_results.precalc_ops);        
+          diversity_scores_[d] += abs(((*ops_results_it).linearalg_ops)-ops_results.linearalg_ops);        
+          diversity_scores_[d] += abs(((*ops_results_it).probstat_ops)-ops_results.probstat_ops);
         }
-
-        for (double arith_op : arith_ops_){
-          diversity_scores_[d] += abs((*arith_ops_it)-arith_op);
-        }
-        for (double trig_op : trig_ops_){
-          diversity_scores_[d] += abs((*trig_ops_it)-trig_op);
-        }
-        for (double precalc_op : precalc_ops_){
-          diversity_scores_[d] += abs((*precalc_ops_it)-precalc_op);
-        }
-        for (double linearalg_op : linearalg_ops_){
-          diversity_scores_[d] += abs((*linearalg_ops_it)-linearalg_op);
-        }
-        for (double probstat_op : probstat_ops_){
-          diversity_scores_[d] += abs((*probstat_ops_it)-probstat_op);
-        }
-
-        for (double total_var : total_vars_){
-          diversity_scores_[d] += abs((*total_vars_it) - total_var);
-        }
+        
+        // for (double total_var : total_vars_){
+        //   diversity_scores_[d] += abs((*total_vars_it) - total_var);
+        // }
         if (diversity_scores_[d] < min_div) {
           min_div = diversity_scores_[d];
         }
         if (diversity_scores_[d] > max_div) {
           max_div = diversity_scores_[d];
         }
-        ++total_ops_it;
-
-        arith_ops_it = arith_ops_.begin();
-        trig_ops_it = trig_ops_.begin();
-        precalc_ops_it = precalc_ops_.begin();
-        linearalg_ops_it = linearalg_ops_.begin();
-        probstat_ops_it = probstat_ops_.begin();
-        
+        ++ops_results_it;
         ++total_vars_it;
       }
-      total_ops_it = total_ops_.begin();
-
-      arith_ops_it = arith_ops_.begin();
-      trig_ops_it = trig_ops_.begin();
-      precalc_ops_it = precalc_ops_.begin();
-      linearalg_ops_it = linearalg_ops_.begin();
-      probstat_ops_it = probstat_ops_.begin();
-
+      
+      ops_results_it = OpsResults_.begin();
       total_vars_it = total_vars_.begin();
       for (size_t d=0; d < diversity_scores_.size(); d++){
         diversity_scores_[d] -= min_div;
         diversity_scores_[d] /= (max_div-min_div);
-        ++total_ops_it;
-
-        ++arith_ops_it;
-        ++trig_ops_it;
-        ++precalc_ops_it;
-        ++linearalg_ops_it;
-        ++probstat_ops_it;
-
+        ++ops_results_it;
         ++total_vars_it;
       }
   // }
@@ -411,8 +355,8 @@ void RegularizedEvolution::MapElites(){
   int fit_idx = 0;
   for (shared_ptr<const Algorithm> next_algorithm : algorithms_){
     int total_vars = GetTotalVars(next_algorithm);
-    int total_ops = GetOps(next_algorithm).total_ops;
-    int idx = (total_vars*row_length) + total_ops;
+    // int total_ops = GetOps(next_algorithm).total_ops;
+    int idx = (total_vars*row_length); // + total_ops;
     if (fitnesses_[fit_idx] >= map_elites_grid_fitnesses_[idx]){
       map_elites_grid_[idx] = next_algorithm;
       map_elites_grid_fitnesses_[idx] = fitnesses_[fit_idx];
@@ -437,18 +381,6 @@ void RegularizedEvolution::MapElites(){
   ++fitness_it;
   }
 }
-
-class OpsResults {
-  public:
-    int total_ops;
-    int arith_ops;
-    int trig_ops;
-    int precalc_ops;
-    int linearalg_ops;
-    int probstat_ops;
-
-    OpsResults(int o1, int o2, int o3, int o4, int o5, int o6): total_ops(o1), arith_ops(o2), trig_ops(o3), precalc_ops(o4), linearalg_ops(o5), probstat_ops(o6) {}
-};
 
 //TODO (jdonovancs): Maybe make a class to keep these variables in. Or add to algorithm at some point?
 // (dramesh): Added OpsResult Class to Addres Above
