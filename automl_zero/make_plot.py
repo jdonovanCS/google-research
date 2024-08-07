@@ -19,7 +19,7 @@ dbs = [
 colors = ['blue', 'orange', 'red', 'purple']
 
 table = "progress"
-fields = "evol_id, best_fit, num_indivs"
+fields = "evol_id, bestfit_diversity, num_indivs"
 where_clause = "TRUE"
 order_by = "num_indivs desc"
 results = {d: {} for d in dbs}

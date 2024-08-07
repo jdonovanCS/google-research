@@ -97,7 +97,7 @@ for ML algorithms).
 
 When running experiments on HPC:
 1. Make sure to include out file in pbs script.
-2. Make sure that the database files being created are new or that they are being tracked correctly.
+2. Make sure that the database files being created are new or that they are being tracked correctly. They will need to be created before a batch run with the pbs script.
 3. Make sure that .sh files are built correctly and running with the correct settings.
 4. Make sure files are copied to a location other than $WORK on HPC because this gets cleaned every two weeks.
 
