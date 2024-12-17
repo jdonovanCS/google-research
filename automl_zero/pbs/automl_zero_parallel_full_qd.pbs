@@ -1,0 +1,14 @@
+#!/bin/bash
+## Required PBS Directives --------------------------------
+#PBS -A ERDCV0089CDAG
+#PBS -q standard
+#PBS -l select=1:ncpus=192:mpiprocs=2
+#PBS -l walltime=24:00:00
+#PBS -l application=automl_zero
+#PBS -j oe
+
+# qsub -A ERDCV0089CDAG -q debug -l select=1:ncpus=192:mpiprocs=2 -l walltime=1:00:00 -l application=automl_zero -j oe -I
+
+cd $WORK/rditljtd/automl_zero && \
+source $HOME/.bashrc && \
+for ((i=0; i<50; i++)); do ./run_parallel_full_qd_nobuild.sh >> experiments/run_parallel_full_qd/$i.out & ./run_parallel_full_mnist_qd_nobuild.sh >> experiments/run_parallel_full_qd_mnist/$i.out & wait & done;

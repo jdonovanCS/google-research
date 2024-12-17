@@ -14,7 +14,8 @@
 
 #!/bin/bash
 
-DATA_DIR=$(pwd)/binary_cifar10_data/
+DATA_DIR=$(pwd)/binary_mnist_data/
+DATA_DIR2=$(pwd)/binary_cifar10_data/
 
 # Evaluating (only evolving the setup) a hand designed Neural Network on
 # projected binary tasks. Utility script to check whether the tasks are
@@ -23,15 +24,15 @@ bazel run -c opt \
   --copt=-DMAX_SCALAR_ADDRESSES=5 \
   --copt=-DMAX_VECTOR_ADDRESSES=9 \
   --copt=-DMAX_MATRIX_ADDRESSES=2 \
-  --script_path run_baseline_nobuild.sh \
+  --script_path run_parallel_full_mnist_qdupdate_nobuild.sh \
   --action_env=CC=/usr/bin/gcc \
   //:run_search_experiment -- \
-  --experiment_name="baseline" \
+  --experiment_name="parallel_full_qdupdate" \
   --search_experiment_spec=" \
     search_tasks { \
       tasks { \
         projected_binary_classification_task { \
-          dataset_name: 'cifar10' \
+          dataset_name: 'mnist' \
           path: '${DATA_DIR}' \
           held_out_pairs {positive_class: 0 negative_class: 5} \
           held_out_pairs {positive_class: 0 negative_class: 9} \
@@ -59,7 +60,10 @@ bazel run -c opt \
     mutate_setup_size_min: 1 \
     mutate_setup_size_max: 7 \
     predict_size_init: 1 \
-    hurdles: 0 \
+    hurdles: 1 \
+    fec: {num_train_examples: 10 num_valid_examples: 10} \
+    migrate_prob: .001 \
+    qd: 1 \
     mutate_predict_size_min: 1 \
     mutate_predict_size_max: 11 \
     learn_size_init: 1 \
@@ -82,7 +86,7 @@ bazel run -c opt \
     tasks { \
       projected_binary_classification_task { \
         dataset_name: 'cifar10' \
-        path: '${DATA_DIR}' \
+        path: '${DATA_DIR2}' \
         held_out_pairs {positive_class: 0 negative_class: 1} \
         held_out_pairs {positive_class: 0 negative_class: 2} \
         held_out_pairs {positive_class: 0 negative_class: 3} \
@@ -133,7 +137,7 @@ bazel run -c opt \
   --select_tasks="
     tasks { \
       projected_binary_classification_task { \
-        dataset_name: 'cifar10' \
+        dataset_name: 'mnist' \
         path: '${DATA_DIR}' \
         held_out_pairs {positive_class: 0 negative_class: 5} \
         held_out_pairs {positive_class: 0 negative_class: 9} \
@@ -153,6 +157,6 @@ bazel run -c opt \
       num_tasks: 10 \
       eval_type: ACCURACY \
     } \
-    " && ./run_baseline_nobuild.sh
+    " && ./run_parallel_full_mnist_qdupdate_nobuild.sh
 
     #fec {num_train_examples: 10 num_valid_examples: 10} \
