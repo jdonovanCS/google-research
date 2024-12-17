@@ -321,6 +321,16 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "ops_results",
+    srcs = ["ops_results.cc"],
+    hdrs = ["ops_results.h"],
+    deps = [
+        ":definitions",
+        ":algorithm",
+    ],
+)
+
 cc_test(
     name = "generator_test",
     srcs = ["generator_test.cc"],
@@ -559,6 +569,7 @@ cc_library(
         ":mutator",
         ":random_generator",
         ":db_connection",
+        ":ops_results",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/memory",
@@ -607,6 +618,7 @@ cc_binary(
         ":random_generator",
         ":regularized_evolution",
         ":train_budget",
+        ":ops_results",
         ":db_connection",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
