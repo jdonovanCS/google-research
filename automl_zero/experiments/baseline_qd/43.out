@@ -1,0 +1,170 @@
+Random seed = 686580778
+/p/work/rditljtd/automl_zero/baseline_qd.db3
+evol_id:1139
+SQLite Version: 3.4.0
+
+Creating database for run.
+/p/work/rditljtd/automl_zero/baseline_qd.db3
+Running evolution experiment (on the T_search tasks)...
+indivs=200, elapsed_secs=0, mean=0.500000, stdev=0.000000, best fit=0.500000, best_overall=0.500000, mean_diversity=0.000000,
+indivs=10298, elapsed_secs=137, mean=0.487307, stdev=0.078288, best fit=0.580700, best_overall=0.580700, mean_diversity=0.043897,
+indivs=20396, elapsed_secs=335, mean=0.486834, stdev=0.080599, best fit=0.583400, best_overall=0.583400, mean_diversity=0.090902,
+indivs=30494, elapsed_secs=505, mean=0.495874, stdev=0.050588, best fit=0.587300, best_overall=0.587300, mean_diversity=0.276921,
+indivs=40592, elapsed_secs=706, mean=0.500186, stdev=0.053177, best fit=0.587300, best_overall=0.587300, mean_diversity=0.262012,
+indivs=50690, elapsed_secs=891, mean=0.504341, stdev=0.014691, best fit=0.587300, best_overall=0.587300, mean_diversity=0.237833,
+indivs=60788, elapsed_secs=1078, mean=0.498966, stdev=0.052132, best fit=0.587300, best_overall=0.587300, mean_diversity=0.404592,
+indivs=70886, elapsed_secs=1281, mean=0.509244, stdev=0.019564, best fit=0.587300, best_overall=0.587300, mean_diversity=0.313342,
+indivs=80984, elapsed_secs=1490, mean=0.499995, stdev=0.052835, best fit=0.587300, best_overall=0.587300, mean_diversity=0.330046,
+indivs=91082, elapsed_secs=1693, mean=0.496891, stdev=0.051258, best fit=0.587300, best_overall=0.587300, mean_diversity=0.190582,
+indivs=101180, elapsed_secs=1897, mean=0.505973, stdev=0.018102, best fit=0.587300, best_overall=0.587300, mean_diversity=0.276772,
+indivs=111278, elapsed_secs=2059, mean=0.495299, stdev=0.050932, best fit=0.587300, best_overall=0.587300, mean_diversity=0.375981,
+indivs=121376, elapsed_secs=2248, mean=0.500835, stdev=0.011600, best fit=0.587300, best_overall=0.587300, mean_diversity=0.342134,
+indivs=131474, elapsed_secs=2441, mean=0.497375, stdev=0.051257, best fit=0.587300, best_overall=0.587300, mean_diversity=0.397923,
+indivs=141572, elapsed_secs=2623, mean=0.516575, stdev=0.031145, best fit=0.587300, best_overall=0.587300, mean_diversity=0.064670,
+indivs=151670, elapsed_secs=2816, mean=0.515589, stdev=0.057118, best fit=0.587300, best_overall=0.587300, mean_diversity=0.214850,
+indivs=161768, elapsed_secs=2979, mean=0.500505, stdev=0.032560, best fit=0.587300, best_overall=0.587300, mean_diversity=0.251339,
+indivs=171866, elapsed_secs=3176, mean=0.505498, stdev=0.015997, best fit=0.592300, best_overall=0.592300, mean_diversity=0.239548,
+indivs=181964, elapsed_secs=3320, mean=0.500864, stdev=0.009316, best fit=0.593300, best_overall=0.593300, mean_diversity=0.243725,
+indivs=192062, elapsed_secs=3538, mean=0.520952, stdev=0.032473, best fit=0.598700, best_overall=0.598700, mean_diversity=0.141440,
+indivs=202160, elapsed_secs=3782, mean=0.501681, stdev=0.011948, best fit=0.598700, best_overall=0.598700, mean_diversity=0.260217,
+indivs=212258, elapsed_secs=4054, mean=0.501398, stdev=0.053549, best fit=0.598700, best_overall=0.598700, mean_diversity=0.378659,
+indivs=222356, elapsed_secs=4317, mean=0.533416, stdev=0.087019, best fit=0.663600, best_overall=0.663600, mean_diversity=0.150484,
+indivs=232454, elapsed_secs=4609, mean=0.535413, stdev=0.106015, best fit=0.669100, best_overall=0.669100, mean_diversity=0.448292,
+indivs=242552, elapsed_secs=4885, mean=0.534512, stdev=0.090592, best fit=0.669300, best_overall=0.669300, mean_diversity=0.340405,
+indivs=252650, elapsed_secs=5174, mean=0.613342, stdev=0.113574, best fit=0.669400, best_overall=0.669400, mean_diversity=0.087416,
+indivs=262748, elapsed_secs=5473, mean=0.584458, stdev=0.142393, best fit=0.670700, best_overall=0.670700, mean_diversity=0.144527,
+indivs=272846, elapsed_secs=5769, mean=0.511445, stdev=0.072319, best fit=0.670800, best_overall=0.670800, mean_diversity=0.183067,
+indivs=282944, elapsed_secs=6063, mean=0.568445, stdev=0.164547, best fit=0.671200, best_overall=0.671200, mean_diversity=0.195690,
+indivs=293042, elapsed_secs=6354, mean=0.580591, stdev=0.144179, best fit=0.671200, best_overall=0.671200, mean_diversity=0.252783,
+indivs=303140, elapsed_secs=6643, mean=0.523858, stdev=0.116934, best fit=0.671200, best_overall=0.671200, mean_diversity=0.249327,
+indivs=313238, elapsed_secs=6931, mean=0.567093, stdev=0.119812, best fit=0.671200, best_overall=0.671200, mean_diversity=0.208316,
+indivs=323336, elapsed_secs=7239, mean=0.576612, stdev=0.143370, best fit=0.671400, best_overall=0.671400, mean_diversity=0.384979,
+indivs=333434, elapsed_secs=7544, mean=0.546109, stdev=0.110771, best fit=0.671400, best_overall=0.671400, mean_diversity=0.382500,
+indivs=343532, elapsed_secs=7863, mean=0.477034, stdev=0.147248, best fit=0.671400, best_overall=0.671400, mean_diversity=0.210724,
+indivs=353630, elapsed_secs=8166, mean=0.543661, stdev=0.170189, best fit=0.671500, best_overall=0.671500, mean_diversity=0.269185,
+indivs=363728, elapsed_secs=8456, mean=0.510353, stdev=0.108059, best fit=0.671500, best_overall=0.671500, mean_diversity=0.268352,
+indivs=373826, elapsed_secs=8746, mean=0.564437, stdev=0.141824, best fit=0.671500, best_overall=0.671500, mean_diversity=0.121045,
+indivs=383924, elapsed_secs=9048, mean=0.573556, stdev=0.097865, best fit=0.671500, best_overall=0.671500, mean_diversity=0.144750,
+indivs=394022, elapsed_secs=9354, mean=0.498217, stdev=0.080338, best fit=0.671500, best_overall=0.671500, mean_diversity=0.096595,
+indivs=404120, elapsed_secs=9653, mean=0.574602, stdev=0.142944, best fit=0.671500, best_overall=0.671500, mean_diversity=0.234484,
+indivs=414218, elapsed_secs=9944, mean=0.477848, stdev=0.216939, best fit=0.671500, best_overall=0.671500, mean_diversity=0.179175,
+indivs=424316, elapsed_secs=10222, mean=0.539911, stdev=0.087006, best fit=0.671500, best_overall=0.671500, mean_diversity=0.388806,
+indivs=434414, elapsed_secs=10530, mean=0.559978, stdev=0.080154, best fit=0.671500, best_overall=0.671500, mean_diversity=0.240925,
+indivs=444512, elapsed_secs=10842, mean=0.456218, stdev=0.144586, best fit=0.671500, best_overall=0.671500, mean_diversity=0.075701,
+indivs=454610, elapsed_secs=11145, mean=0.523197, stdev=0.082680, best fit=0.671500, best_overall=0.671500, mean_diversity=0.258056,
+indivs=464708, elapsed_secs=11427, mean=0.535582, stdev=0.090602, best fit=0.671500, best_overall=0.671500, mean_diversity=0.246142,
+indivs=474806, elapsed_secs=11717, mean=0.544408, stdev=0.114032, best fit=0.671700, best_overall=0.671700, mean_diversity=0.297872,
+indivs=484904, elapsed_secs=11965, mean=0.551283, stdev=0.096483, best fit=0.671700, best_overall=0.671700, mean_diversity=0.277563,
+indivs=495002, elapsed_secs=12236, mean=0.478405, stdev=0.112309, best fit=0.671700, best_overall=0.671700, mean_diversity=0.274260,
+indivs=505100, elapsed_secs=12523, mean=0.565721, stdev=0.115812, best fit=0.671700, best_overall=0.671700, mean_diversity=0.253297,
+indivs=515198, elapsed_secs=12809, mean=0.513252, stdev=0.124753, best fit=0.671700, best_overall=0.671700, mean_diversity=0.132315,
+indivs=525296, elapsed_secs=13072, mean=0.508731, stdev=0.170587, best fit=0.671700, best_overall=0.671700, mean_diversity=0.266184,
+indivs=535394, elapsed_secs=13351, mean=0.555863, stdev=0.161142, best fit=0.671700, best_overall=0.671700, mean_diversity=0.352741,
+indivs=545492, elapsed_secs=13612, mean=0.566165, stdev=0.102117, best fit=0.671700, best_overall=0.671700, mean_diversity=0.247346,
+indivs=555590, elapsed_secs=13869, mean=0.571599, stdev=0.140051, best fit=0.671700, best_overall=0.671700, mean_diversity=0.178120,
+indivs=565688, elapsed_secs=14126, mean=0.590687, stdev=0.130552, best fit=0.671700, best_overall=0.671700, mean_diversity=0.093069,
+indivs=575786, elapsed_secs=14367, mean=0.616990, stdev=0.114249, best fit=0.671700, best_overall=0.671700, mean_diversity=0.150481,
+indivs=585884, elapsed_secs=14671, mean=0.515281, stdev=0.111507, best fit=0.671700, best_overall=0.671700, mean_diversity=0.196741,
+indivs=595982, elapsed_secs=14940, mean=0.527825, stdev=0.086377, best fit=0.671700, best_overall=0.671700, mean_diversity=0.278276,
+indivs=606080, elapsed_secs=15206, mean=0.565699, stdev=0.130230, best fit=0.671700, best_overall=0.671700, mean_diversity=0.402532,
+indivs=616178, elapsed_secs=15459, mean=0.567320, stdev=0.116698, best fit=0.671700, best_overall=0.671700, mean_diversity=0.286777,
+indivs=626276, elapsed_secs=15723, mean=0.521954, stdev=0.101770, best fit=0.671700, best_overall=0.671700, mean_diversity=0.136024,
+indivs=636374, elapsed_secs=15991, mean=0.546543, stdev=0.067660, best fit=0.671700, best_overall=0.671700, mean_diversity=0.047011,
+indivs=646472, elapsed_secs=16265, mean=0.574305, stdev=0.102233, best fit=0.671700, best_overall=0.671700, mean_diversity=0.263083,
+indivs=656570, elapsed_secs=16534, mean=0.546801, stdev=0.111014, best fit=0.671700, best_overall=0.671700, mean_diversity=0.248796,
+indivs=666668, elapsed_secs=16787, mean=0.530416, stdev=0.086890, best fit=0.671700, best_overall=0.671700, mean_diversity=0.239078,
+indivs=676766, elapsed_secs=17033, mean=0.569014, stdev=0.130388, best fit=0.671700, best_overall=0.671700, mean_diversity=0.409681,
+indivs=686864, elapsed_secs=17288, mean=0.572922, stdev=0.116050, best fit=0.671700, best_overall=0.671700, mean_diversity=0.320681,
+indivs=696962, elapsed_secs=17545, mean=0.560652, stdev=0.151896, best fit=0.671700, best_overall=0.671700, mean_diversity=0.200066,
+indivs=707060, elapsed_secs=17800, mean=0.503402, stdev=0.131053, best fit=0.672800, best_overall=0.672800, mean_diversity=0.386811,
+indivs=717158, elapsed_secs=18120, mean=0.563437, stdev=0.067661, best fit=0.672800, best_overall=0.672800, mean_diversity=0.149966,
+indivs=727256, elapsed_secs=18434, mean=0.615187, stdev=0.139710, best fit=0.673600, best_overall=0.673600, mean_diversity=0.109416,
+indivs=737354, elapsed_secs=18744, mean=0.594691, stdev=0.117120, best fit=0.673600, best_overall=0.673600, mean_diversity=0.143365,
+indivs=747452, elapsed_secs=19047, mean=0.448395, stdev=0.120901, best fit=0.673600, best_overall=0.673600, mean_diversity=0.101107,
+indivs=757550, elapsed_secs=19342, mean=0.512011, stdev=0.109150, best fit=0.673600, best_overall=0.673600, mean_diversity=0.251932,
+indivs=767648, elapsed_secs=19673, mean=0.538222, stdev=0.158013, best fit=0.673600, best_overall=0.673600, mean_diversity=0.081741,
+indivs=777746, elapsed_secs=19970, mean=0.570946, stdev=0.130035, best fit=0.673600, best_overall=0.673600, mean_diversity=0.054259,
+indivs=787844, elapsed_secs=20281, mean=0.496553, stdev=0.097341, best fit=0.674200, best_overall=0.674200, mean_diversity=0.245817,
+indivs=797942, elapsed_secs=20607, mean=0.576786, stdev=0.128903, best fit=0.674200, best_overall=0.674200, mean_diversity=0.154838,
+indivs=808040, elapsed_secs=20935, mean=0.498499, stdev=0.019472, best fit=0.674200, best_overall=0.674200, mean_diversity=0.164876,
+indivs=818138, elapsed_secs=21248, mean=0.553530, stdev=0.157682, best fit=0.674200, best_overall=0.674200, mean_diversity=0.231452,
+indivs=828236, elapsed_secs=21572, mean=0.558460, stdev=0.125985, best fit=0.674200, best_overall=0.674200, mean_diversity=0.346789,
+indivs=838334, elapsed_secs=21887, mean=0.592208, stdev=0.116314, best fit=0.674200, best_overall=0.674200, mean_diversity=0.217646,
+indivs=848432, elapsed_secs=22214, mean=0.609287, stdev=0.098564, best fit=0.674200, best_overall=0.674200, mean_diversity=0.169703,
+indivs=858530, elapsed_secs=22527, mean=0.532184, stdev=0.088036, best fit=0.674200, best_overall=0.674200, mean_diversity=0.221997,
+indivs=868628, elapsed_secs=22853, mean=0.501143, stdev=0.117423, best fit=0.674200, best_overall=0.674200, mean_diversity=0.210663,
+indivs=878726, elapsed_secs=23166, mean=0.549206, stdev=0.147356, best fit=0.674200, best_overall=0.674200, mean_diversity=0.275734,
+indivs=888824, elapsed_secs=23490, mean=0.590037, stdev=0.144010, best fit=0.674200, best_overall=0.674200, mean_diversity=0.163091,
+indivs=898922, elapsed_secs=23768, mean=0.502047, stdev=0.062995, best fit=0.674300, best_overall=0.674300, mean_diversity=0.088762,
+indivs=909020, elapsed_secs=24027, mean=0.618213, stdev=0.075281, best fit=0.674300, best_overall=0.674300, mean_diversity=0.041919,
+indivs=919118, elapsed_secs=24277, mean=0.493430, stdev=0.074471, best fit=0.674300, best_overall=0.674300, mean_diversity=0.104859,
+indivs=929216, elapsed_secs=24489, mean=0.507376, stdev=0.069534, best fit=0.674300, best_overall=0.674300, mean_diversity=0.192043,
+indivs=939314, elapsed_secs=24738, mean=0.538791, stdev=0.091499, best fit=0.674300, best_overall=0.674300, mean_diversity=0.416918,
+indivs=949412, elapsed_secs=24955, mean=0.534036, stdev=0.088227, best fit=0.674300, best_overall=0.674300, mean_diversity=0.240161,
+indivs=959510, elapsed_secs=25203, mean=0.544120, stdev=0.151207, best fit=0.674300, best_overall=0.674300, mean_diversity=0.119495,
+indivs=969608, elapsed_secs=25448, mean=0.521177, stdev=0.114982, best fit=0.674300, best_overall=0.674300, mean_diversity=0.419231,
+indivs=979706, elapsed_secs=25696, mean=0.503072, stdev=0.062876, best fit=0.674300, best_overall=0.674300, mean_diversity=0.119985,
+indivs=989804, elapsed_secs=25948, mean=0.574090, stdev=0.116767, best fit=0.674300, best_overall=0.674300, mean_diversity=0.304479,
+indivs=999902, elapsed_secs=26184, mean=0.560517, stdev=0.100434, best fit=0.674300, best_overall=0.674300, mean_diversity=0.155983,
+indivs=1010000, elapsed_secs=26449, mean=0.613319, stdev=0.113865, best fit=0.674300, best_overall=0.674300, mean_diversity=0.156353,
+indivs=1020098, elapsed_secs=26699, mean=0.596152, stdev=0.112609, best fit=0.674300, best_overall=0.674300, mean_diversity=0.160285,
+indivs=1030196, elapsed_secs=26945, mean=0.571137, stdev=0.101205, best fit=0.674300, best_overall=0.674300, mean_diversity=0.166424,
+indivs=1040294, elapsed_secs=27201, mean=0.486264, stdev=0.087566, best fit=0.674300, best_overall=0.674300, mean_diversity=0.136359,
+indivs=1050392, elapsed_secs=27448, mean=0.609836, stdev=0.078815, best fit=0.674300, best_overall=0.674300, mean_diversity=0.164692,
+indivs=1060490, elapsed_secs=27708, mean=0.593140, stdev=0.116698, best fit=0.674300, best_overall=0.674300, mean_diversity=0.199379,
+indivs=1070588, elapsed_secs=27953, mean=0.524261, stdev=0.058787, best fit=0.674300, best_overall=0.674300, mean_diversity=0.065682,
+indivs=1080686, elapsed_secs=28188, mean=0.555780, stdev=0.079327, best fit=0.674300, best_overall=0.674300, mean_diversity=0.266347,
+indivs=1090784, elapsed_secs=28426, mean=0.563135, stdev=0.129475, best fit=0.674300, best_overall=0.674300, mean_diversity=0.137306,
+indivs=1100882, elapsed_secs=28650, mean=0.574808, stdev=0.082615, best fit=0.674300, best_overall=0.674300, mean_diversity=0.231769,
+indivs=1110980, elapsed_secs=28898, mean=0.527571, stdev=0.062013, best fit=0.674300, best_overall=0.674300, mean_diversity=0.224942,
+indivs=1121078, elapsed_secs=29131, mean=0.589473, stdev=0.117395, best fit=0.674300, best_overall=0.674300, mean_diversity=0.199562,
+indivs=1131176, elapsed_secs=29348, mean=0.508426, stdev=0.036736, best fit=0.674300, best_overall=0.674300, mean_diversity=0.082609,
+indivs=1141274, elapsed_secs=29601, mean=0.512151, stdev=0.092598, best fit=0.674300, best_overall=0.674300, mean_diversity=0.201571,
+indivs=1151372, elapsed_secs=29840, mean=0.544047, stdev=0.125051, best fit=0.674300, best_overall=0.674300, mean_diversity=0.401076,
+indivs=1161470, elapsed_secs=30074, mean=0.501743, stdev=0.017343, best fit=0.674300, best_overall=0.674300, mean_diversity=0.130679,
+indivs=1171568, elapsed_secs=30298, mean=0.498739, stdev=0.114182, best fit=0.674300, best_overall=0.674300, mean_diversity=0.341820,
+indivs=1181666, elapsed_secs=30525, mean=0.621881, stdev=0.075947, best fit=0.674300, best_overall=0.674300, mean_diversity=0.200378,
+indivs=1191764, elapsed_secs=30759, mean=0.549799, stdev=0.077790, best fit=0.674400, best_overall=0.674400, mean_diversity=0.291868,
+indivs=1201862, elapsed_secs=31011, mean=0.580198, stdev=0.118437, best fit=0.674400, best_overall=0.674400, mean_diversity=0.143359,
+indivs=1211960, elapsed_secs=31269, mean=0.540042, stdev=0.091228, best fit=0.674400, best_overall=0.674400, mean_diversity=0.284175,
+indivs=1222058, elapsed_secs=31508, mean=0.586241, stdev=0.101147, best fit=0.674400, best_overall=0.674400, mean_diversity=0.167682,
+indivs=1232156, elapsed_secs=31756, mean=0.550789, stdev=0.097132, best fit=0.674400, best_overall=0.674400, mean_diversity=0.301401,
+indivs=1242254, elapsed_secs=31982, mean=0.617642, stdev=0.078618, best fit=0.674400, best_overall=0.674400, mean_diversity=0.046994,
+indivs=1252352, elapsed_secs=32226, mean=0.553764, stdev=0.111672, best fit=0.674700, best_overall=0.674700, mean_diversity=0.255809,
+indivs=1262450, elapsed_secs=32461, mean=0.607485, stdev=0.113887, best fit=0.674700, best_overall=0.674700, mean_diversity=0.072963,
+indivs=1272548, elapsed_secs=32715, mean=0.613461, stdev=0.094733, best fit=0.674700, best_overall=0.674700, mean_diversity=0.103583,
+Experiment done. Retrieving candidate algorithm.
+Search fitness for candidate algorithm = 0.674700
+Evaluating candidate algorithm from experiment (on T_select tasks)... 
+Select fitness for candidate algorithm = 0.669200
+Select fitness is the best so far. 
+
+Final evaluation of best algorithm (on unseen tasks)...
+Final evaluation fitness (on unseen data) = 0.662950
+Algorithm found: 
+def Setup():
+  s4 = gaussian(0.811964, 0.759143)
+  s4 = gaussian(0.700704, 0.183967)
+  s4 = gaussian(0.930816, 0.197487)
+  v8 = gaussian(0.427072, 150.868, n_features)
+def Predict():
+  s3 = s2 + s2
+  v7 = v8 + v5
+  v7 = maximum(v8, v7)
+  s4 = s0 + s4
+  s2 = s4 + s4
+  s1 = dot(v0, v8)
+def Learn():
+  v3 = v2 + v8
+  s4 = s4 - s2
+  m0 = m0 + m1
+  v3 = heaviside(v4, 1.0)
+  v3 = v7 + v4
+  m1 = m0 + m0
+  v3 = v0 * v3
+  m1 = outer(v4, v8)
+  v2 = s0 * v0
+  v8 = v7 + v2
+  m1 = m1 + m0
+  m1 = m0 + m0
+
