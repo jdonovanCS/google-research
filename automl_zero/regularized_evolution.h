@@ -28,7 +28,6 @@
 #include "mutator.h"
 #include "db_connection.h"
 #include "random_generator.h"
-#include "ops_results.h"
 #include "absl/flags/flag.h"
 #include "absl/time/time.h"
 #include "gtest/gtest_prod.h"
@@ -104,7 +103,7 @@ class RegularizedEvolution {
 
   void InitAlgorithm(std::shared_ptr<const Algorithm>* algorithm);
   void MapElites();
-  OpsResults GetOps(std::shared_ptr<const Algorithm> alg);
+  int GetTotalOps(std::shared_ptr<const Algorithm> alg);
   int GetTotalVars(std::shared_ptr<const Algorithm> alg);
   double Execute(std::shared_ptr<const Algorithm> algorithm, bool earlyEval);
   std::shared_ptr<const Algorithm> BestFitnessTournament();
@@ -139,7 +138,7 @@ class RegularizedEvolution {
   std::vector<double> fitnesses_;
   std::vector<double> early_fitnesses_;
   std::vector<double> diversity_scores_;
-  std::vector<OpsResults> OpsResults_;
+  std::vector<double> total_ops_;
   std::vector<double> total_vars_;
   std::shared_ptr<const Algorithm> best_alg_;
   double best_fitness_;
